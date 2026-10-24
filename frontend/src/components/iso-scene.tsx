@@ -5,12 +5,15 @@ import {
   project,
   type Hall,
   type View,
+  ISO_STEP_X,
+  ISO_STEP_Y,
+  ISO_STEP_Z,
 } from "@/lib/iso";
 import { getTeamBuildingCoords, getCategoryPartitionCoords } from "@/lib/teams-sops";
 
 const HALL_FW = 3;
 const HALL_FD = 2;
-const HALL_H = 1.15;
+const HALL_H = 1.45;
 // Near-infinite zoom out down to 0.5% scale so all campus bay areas can be seen
 const MIN_K = 0.005;
 const MAX_K = 5;
@@ -73,9 +76,11 @@ function HallBox({
   const h = HALL_H;
   const barX = 0.35;
   const barW = 2.3;
-  const barY = fd - 0.36;
-  const barH = 0.16;
+  const barY = fd - 0.28;
+  const barH = 0.14;
   const fillX = barX + (barW * load) / 100;
+
+  const statusColor = alert ? "#EF4444" : load >= 85 ? "#10B981" : "#F59E0B";
 
   return (
     <g
@@ -89,7 +94,56 @@ function HallBox({
         onOpenTerminal?.(id);
       }}
     >
-      {/* orange corner bracket on the ground */}
+      {/* 1. Clash of Clans Realistic Directional Cast Ground Shadow */}
+      <polygon
+        points={flat([
+          [0, 0, 0],
+          [fw, 0, 0],
+          [fw + 1.25, 0.95, 0],
+          [fw + 1.25, fd + 0.95, 0],
+          [0.95, fd + 0.95, 0],
+          [0, fd, 0],
+        ], gx, gy)}
+        fill="url(#groundShadowGrad)"
+        pointerEvents="none"
+      />
+
+      {/* 2. Concrete Sub-base Foundation Plinth */}
+      <g className="foundation-plinth" pointerEvents="none">
+        <polygon
+          points={flat([[-0.1, -0.1, 0.16], [fw + 0.1, -0.1, 0.16], [fw + 0.1, fd + 0.1, 0.16], [-0.1, fd + 0.1, 0.16]], gx, gy)}
+          fill="url(#plinthGrad)"
+          stroke="#333A4A"
+          strokeWidth="0.8"
+        />
+        <polygon
+          points={flat([[fw + 0.1, -0.1, 0], [fw + 0.1, fd + 0.1, 0], [fw + 0.1, fd + 0.1, 0.16], [fw + 0.1, -0.1, 0.16]], gx, gy)}
+          fill="#10131A"
+        />
+        <polygon
+          points={flat([[-0.1, fd + 0.1, 0], [fw + 0.1, fd + 0.1, 0], [fw + 0.1, fd + 0.1, 0.16], [-0.1, fd + 0.1, 0.16]], gx, gy)}
+          fill="#1A1E29"
+        />
+      </g>
+
+      {/* 3. AMR Autonomous Guide Tracks leading into the Bay */}
+      <g pointerEvents="none" opacity="0.85">
+        <polyline
+          points={flat([[1.5, fd + 0.1, 0.02], [1.5, fd + 1.3, 0.02]], gx, gy)}
+          fill="none"
+          stroke="#F59E0B"
+          strokeWidth="1.2"
+          strokeDasharray="2 2"
+        />
+        <polyline
+          points={flat([[1.1, fd + 0.5, 0.02], [1.9, fd + 0.5, 0.02]], gx, gy)}
+          fill="none"
+          stroke="#F59E0B"
+          strokeWidth="1"
+        />
+      </g>
+
+      {/* 4. Signature Ground Corner Coordinate Bracket */}
       <polyline
         points={flat([
           [gx - 0.45, gy + fd - 0.25, 0],
@@ -98,65 +152,216 @@ function HallBox({
         ])}
         fill="none"
         stroke="var(--accent)"
-        strokeWidth="1.5"
-        opacity="0.7"
+        strokeWidth="1.6"
+        opacity="0.85"
       />
+
       <g className="hall-body">
-        {/* roof */}
-        <polygon points={flat([[0, 0, h], [fw, 0, h], [fw, fd, h], [0, fd, h]], gx, gy)} fill="var(--hall-top)" />
-        {/* right face */}
-        <polygon points={flat([[fw, 0, 0], [fw, fd, 0], [fw, fd, h], [fw, 0, h]], gx, gy)} fill="var(--hall-side)" />
-        {/* front face */}
-        <polygon points={flat([[0, fd, 0], [fw, fd, 0], [fw, fd, h], [0, fd, h]], gx, gy)} fill="var(--hall-front)" />
-        {/* roof vents */}
-        {[0, 1].map((r) =>
-          [0, 1, 2].map((c) => {
-            const p = project(gx + 0.55 + c * 0.95, gy + 0.5 + r, h);
-            return (
+        {/* 5. Main Building Body */}
+        {/* Front-Right Wall: Shaded Architectural Slate with Glass Ribbon Windows */}
+        <polygon
+          points={flat([[fw, 0, 0.16], [fw, fd, 0.16], [fw, fd, h], [fw, 0, h]], gx, gy)}
+          fill="url(#wallShadowSlate)"
+          stroke="#1E2330"
+          strokeWidth="0.8"
+        />
+        {/* Ribbon Windows with Cyan Sky Glare */}
+        <polygon
+          points={flat([[fw, 0.35, 0.65], [fw, fd - 0.35, 0.65], [fw, fd - 0.35, 1.1], [fw, 0.35, 1.1]], gx, gy)}
+          fill="url(#ribbonGlassGrad)"
+          stroke="#0284C7"
+          strokeWidth="0.6"
+        />
+        {/* Window Division Mullions */}
+        {[0.75, 1.15, 1.55].map((my) => (
+          <line
+            key={`mullion-${my}`}
+            x1={project(gx + fw, gy + my, 0.65).px}
+            y1={project(gx + fw, gy + my, 0.65).py}
+            x2={project(gx + fw, gy + my, 1.1).px}
+            y2={project(gx + fw, gy + my, 1.1).py}
+            stroke="#1E293B"
+            strokeWidth="0.8"
+          />
+        ))}
+
+        {/* Front-Left Wall: Sunlit Pristine Architectural White */}
+        <polygon
+          points={flat([[0, fd, 0.16], [fw, fd, 0.16], [fw, fd, h], [0, fd, h]], gx, gy)}
+          fill="url(#wallLitWhite)"
+          stroke="#94A3B8"
+          strokeWidth="0.8"
+        />
+        {/* Architectural Wall Seam Joints */}
+        <line
+          x1={project(gx + 0.8, gy + fd, 0.16).px}
+          y1={project(gx + 0.8, gy + fd, 0.16).py}
+          x2={project(gx + 0.8, gy + fd, h).px}
+          y2={project(gx + 0.8, gy + fd, h).py}
+          stroke="#CBD5E1"
+          strokeWidth="0.8"
+        />
+        <line
+          x1={project(gx + 2.2, gy + fd, 0.16).px}
+          y1={project(gx + 2.2, gy + fd, 0.16).py}
+          x2={project(gx + 2.2, gy + fd, h).px}
+          y2={project(gx + 2.2, gy + fd, h).py}
+          stroke="#CBD5E1"
+          strokeWidth="0.8"
+        />
+
+        {/* Automated Rollup Robotics Hangar Door */}
+        <polygon
+          points={flat([[0.85, fd, 0.16], [2.15, fd, 0.16], [2.15, fd, 0.96], [0.85, fd, 0.96]], gx, gy)}
+          fill="#141722"
+          stroke="#334155"
+          strokeWidth="0.8"
+        />
+        {/* Rollup Door Horizontal Slats */}
+        {[0.36, 0.56, 0.76].map((sz) => (
+          <line
+            key={`slat-${sz}`}
+            x1={project(gx + 0.85, gy + fd, sz).px}
+            y1={project(gx + 0.85, gy + fd, sz).py}
+            x2={project(gx + 2.15, gy + fd, sz).px}
+            y2={project(gx + 2.15, gy + fd, sz).py}
+            stroke="#1E293B"
+            strokeWidth="0.7"
+          />
+        ))}
+
+        {/* Overhead Hazard Warning Lintel Beam */}
+        <polygon
+          points={flat([[0.83, fd, 0.96], [2.17, fd, 0.96], [2.17, fd, 1.08], [0.83, fd, 1.08]], gx, gy)}
+          fill="url(#hazardPattern)"
+          stroke="#1E293B"
+          strokeWidth="0.5"
+        />
+
+        {/* Active Dock Status LED Beacon */}
+        <polygon
+          points={flat([[1.35, fd, 1.14], [1.65, fd, 1.14], [1.65, fd, 1.22], [1.35, fd, 1.22]], gx, gy)}
+          fill={statusColor}
+        />
+
+        {/* Laser Engraved Facility Code on Front Facade */}
+        {(() => {
+          const codeP = project(gx + 0.42, gy + fd, 1.22);
+          return (
+            <text
+              x={codeP.px}
+              y={codeP.py}
+              textAnchor="middle"
+              className="fill-slate-600 font-mono font-bold text-[7px] tracking-wider pointer-events-none select-none"
+            >
+              {hall.name}
+            </text>
+          );
+        })()}
+
+        {/* 6. Cantilevered Overhanging Roof */}
+        <polygon
+          points={flat([[-0.08, -0.08, h], [fw + 0.08, -0.08, h], [fw + 0.08, fd + 0.08, h], [-0.08, fd + 0.08, h]], gx, gy)}
+          fill="url(#roofSlabGrad)"
+          stroke="#475569"
+          strokeWidth="0.9"
+        />
+        {/* Roof Fascia Edge */}
+        <polygon
+          points={flat([[-0.08, fd + 0.08, h - 0.06], [fw + 0.08, fd + 0.08, h - 0.06], [fw + 0.08, fd + 0.08, h], [-0.08, fd + 0.08, h]], gx, gy)}
+          fill="#1E2433"
+        />
+
+        {/* 7. Rooftop Solar Photovoltaic Grid Array */}
+        <polygon
+          points={flat([[0.25, 0.25, h + 0.02], [1.65, 0.25, h + 0.02], [1.65, 1.45, h + 0.02], [0.25, 1.45, h + 0.02]], gx, gy)}
+          fill="url(#solarGlassGrad)"
+          stroke="#38BDF8"
+          strokeWidth="0.5"
+        />
+        {/* Solar Cell Dividers */}
+        <line
+          x1={project(gx + 0.95, gy + 0.25, h + 0.02).px}
+          y1={project(gx + 0.95, gy + 0.25, h + 0.02).py}
+          x2={project(gx + 0.95, gy + 1.45, h + 0.02).px}
+          y2={project(gx + 0.95, gy + 1.45, h + 0.02).py}
+          stroke="#0C4A6E"
+          strokeWidth="0.6"
+        />
+        <line
+          x1={project(gx + 0.25, gy + 0.85, h + 0.02).px}
+          y1={project(gx + 0.25, gy + 0.85, h + 0.02).py}
+          x2={project(gx + 1.65, gy + 0.85, h + 0.02).px}
+          y2={project(gx + 1.65, gy + 0.85, h + 0.02).py}
+          stroke="#0C4A6E"
+          strokeWidth="0.6"
+        />
+
+        {/* 8. Twin Industrial Turbofan HVAC Coolers */}
+        {[0, 1].map((r) => {
+          const p = project(gx + 2.25, gy + 0.5 + r * 0.75, h + 0.02);
+          return (
+            <g key={`turbofan-${r}`}>
               <ellipse
-                key={`${r}-${c}`}
                 cx={p.px}
                 cy={p.py}
-                rx={10}
-                ry={4.9}
-                fill="var(--hall-vent)"
-                stroke="var(--hall-rim)"
+                rx={7}
+                ry={3.5}
+                fill="#0F172A"
+                stroke="#64748B"
                 strokeWidth="1"
               />
-            );
-          }),
-        )}
-        {/* door */}
+              <circle cx={p.px} cy={p.py} r={1.8} fill="#94A3B8" />
+              {/* Fan blades indicator */}
+              <line x1={p.px - 4} y1={p.py} x2={p.px + 4} y2={p.py} stroke="#475569" strokeWidth="0.8" />
+              <line x1={p.px} y1={p.py - 2} x2={p.px} y2={p.py + 2} stroke="#475569" strokeWidth="0.8" />
+            </g>
+          );
+        })}
+
+        {/* 9. 3D Telecommunications Antenna Mast */}
+        {(() => {
+          const baseP = project(gx + 2.7, gy + 0.25, h);
+          const topP = project(gx + 2.7, gy + 0.25, h + 0.65);
+          return (
+            <g pointerEvents="none">
+              <line x1={baseP.px} y1={baseP.py} x2={topP.px} y2={topP.py} stroke="#94A3B8" strokeWidth="1.4" />
+              <line x1={topP.px - 3} y1={topP.py + 4} x2={topP.px + 3} y2={topP.py + 4} stroke="#94A3B8" strokeWidth="1" />
+              <circle cx={topP.px} cy={topP.py} r={2} fill={alert ? "#EF4444" : "var(--accent)"} />
+            </g>
+          );
+        })()}
+
+        {/* 10. Digital Load/Health Meter */}
         <polygon
-          points={flat([[1.15, fd, 0], [1.85, fd, 0], [1.85, fd, 0.62], [1.15, fd, 0.62]], gx, gy)}
-          fill="var(--hall-door)"
+          points={flat([[barX, barY, h + 0.03], [barX + barW, barY, h + 0.03], [barX + barW, barY + barH, h + 0.03], [barX, barY + barH, h + 0.03]], gx, gy)}
+          fill="#0F172A"
         />
-        {/* light dash under the roof edge */}
         <polygon
-          points={flat([[0.5, fd, 0.85], [1.1, fd, 0.85], [1.1, fd, 0.95], [0.5, fd, 0.95]], gx, gy)}
-          fill="var(--foreground)"
-          opacity="0.85"
-        />
-        {/* load bar */}
-        <polygon
-          points={flat([[barX, barY, h + 0.01], [barX + barW, barY, h + 0.01], [barX + barW, barY + barH, h + 0.01], [barX, barY + barH, h + 0.01]], gx, gy)}
-          fill="oklch(0.17 0.01 260)"
-        />
-        <polygon
-          points={flat([[barX, barY, h + 0.02], [fillX, barY, h + 0.02], [fillX, barY + barH, h + 0.02], [barX, barY + barH, h + 0.02]], gx, gy)}
-          fill={alert ? "var(--destructive)" : "var(--accent)"}
+          points={flat([[barX, barY, h + 0.04], [fillX, barY, h + 0.04], [fillX, barY + barH, h + 0.04], [barX, barY + barH, h + 0.04]], gx, gy)}
+          fill={statusColor}
         />
       </g>
-      {/* selection / hover outline */}
+
+      {/* Selection / Hover Outline */}
       <polygon
         className="hall-hull"
-        points={flat([[0, 0, h], [fw, 0, h], [fw, 0, 0], [fw, fd, 0], [0, fd, 0], [0, fd, h]], gx, gy)}
+        points={flat([
+          [-0.08, -0.08, h],
+          [fw + 0.08, -0.08, h],
+          [fw + 0.08, -0.08, 0],
+          [fw + 0.08, fd + 0.08, 0],
+          [-0.08, fd + 0.08, 0],
+          [-0.08, fd + 0.08, h],
+        ], gx, gy)}
         fill="none"
         stroke="var(--accent)"
         strokeWidth="2"
       />
+
+      {/* Selected Title Badge */}
       {selected && (() => {
-        const p = project(gx + fw / 2, gy + fd / 2, h + 0.65);
+        const p = project(gx + fw / 2, gy + fd / 2, h + 0.8);
         const displayTitle = hall.title || hall.name;
         const truncated = displayTitle.length > 30 ? `${displayTitle.slice(0, 28)}...` : displayTitle;
         const badgeW = Math.max(140, truncated.length * 6.5 + 24);
@@ -240,7 +445,14 @@ function TeamHQBuilding({
   const { id, code, index, isActive, alertCount } = district;
   const { bx, by, isLeft, fw, fd, h } = getTeamBuildingCoords(index);
 
-  const roofCenterP = project(bx + fw / 2, by + fd / 2, h + 0.85);
+  const roofCenterP = project(bx + fw / 2, by + fd / 2, h + 1.8);
+
+  // 2nd-Story Observation Deck & Command Bridge
+  const twW = 4.4;
+  const twD = 2.4;
+  const twX = bx + (fw - twW) / 2;
+  const twY = by + (fd - twD) / 2;
+  const twH = h + 1.1;
 
   return (
     <g
@@ -250,77 +462,234 @@ function TeamHQBuilding({
         onSelectTeamHQ?.(id);
       }}
     >
-      {/* Ground shadow / footprint */}
+      {/* 1. Clash of Clans Directional Ground Shadow */}
       <polygon
-        points={flat([[0, 0, 0], [fw, 0, 0], [fw, fd, 0], [0, fd, 0]], bx, by)}
-        fill="oklch(0.12 0.005 260 / 0.8)"
+        points={flat([
+          [0, 0, 0],
+          [fw, 0, 0],
+          [fw + 1.8, 1.4, 0],
+          [fw + 1.8, fd + 1.4, 0],
+          [1.4, fd + 1.4, 0],
+          [0, fd, 0],
+        ], bx, by)}
+        fill="url(#groundShadowGrad)"
+        pointerEvents="none"
       />
 
-      {/* Main Operations Building Box */}
+      {/* 2. Heavy Industrial Concrete Foundation Pad */}
+      <g pointerEvents="none">
+        <polygon
+          points={flat([[-0.2, -0.2, 0.2], [fw + 0.2, -0.2, 0.2], [fw + 0.2, fd + 0.2, 0.2], [-0.2, fd + 0.2, 0.2]], bx, by)}
+          fill="url(#plinthGrad)"
+          stroke="#384052"
+          strokeWidth="1"
+        />
+        <polygon
+          points={flat([[-0.2, fd + 0.2, 0], [fw + 0.2, fd + 0.2, 0], [fw + 0.2, fd + 0.2, 0.2], [-0.2, fd + 0.2, 0.2]], bx, by)}
+          fill="#181C26"
+        />
+        <polygon
+          points={flat([[fw + 0.2, -0.2, 0], [fw + 0.2, fd + 0.2, 0], [fw + 0.2, fd + 0.2, 0.2], [fw + 0.2, -0.2, 0.2]], bx, by)}
+          fill="#10131B"
+        />
+      </g>
+
+      {/* 3. Base Operations Warehouse (Tier 1) */}
       <IsoBox
         x={bx}
         y={by}
         fw={fw}
         fd={fd}
         h={h}
-        top="var(--wh-roof)"
-        front="var(--wh-front)"
-        side="var(--wh-side)"
+        top="url(#roofSlabGrad)"
+        front="url(#wallLitWhite)"
+        side="url(#wallShadowSlate)"
       >
-        {/* 3 Loading Dock Doors along the front face */}
-        {[0, 1, 2].map((i) => (
-          <g key={i}>
-            <polygon
-              points={flat(
-                [
-                  [1.1 + i * 2.5, fd, 0],
-                  [2.3 + i * 2.5, fd, 0],
-                  [2.3 + i * 2.5, fd, 0.95],
-                  [1.1 + i * 2.5, fd, 0.95],
-                ],
-                bx,
-                by,
-              )}
-              fill="var(--hall-door)"
-            />
-            {/* Dock indicator light */}
-            <polygon
-              points={flat(
-                [
-                  [1.5 + i * 2.5, fd, 1.05],
-                  [1.9 + i * 2.5, fd, 1.05],
-                  [1.9 + i * 2.5, fd, 1.12],
-                  [1.5 + i * 2.5, fd, 1.12],
-                ],
-                bx,
-                by,
-              )}
-              fill={isActive ? "var(--accent)" : "oklch(0.7 0.2 145)"}
-            />
-          </g>
-        ))}
+        {/* 3 Large Automated Freight Logistics Docks */}
+        {[0, 1, 2].map((i) => {
+          const dx = 1.0 + i * 2.5;
+          return (
+            <g key={`hq-dock-${i}`}>
+              {/* Dock Entry */}
+              <polygon
+                points={flat(
+                  [
+                    [dx, fd, 0.2],
+                    [dx + 1.5, fd, 0.2],
+                    [dx + 1.5, fd, 1.25],
+                    [dx, fd, 1.25],
+                  ],
+                  bx,
+                  by,
+                )}
+                fill="#121620"
+                stroke="#334155"
+                strokeWidth="0.8"
+              />
+              {/* Rollup Slats */}
+              {[0.45, 0.7, 0.95].map((slatZ) => (
+                <line
+                  key={`dock-slat-${slatZ}`}
+                  x1={project(bx + dx, by + fd, slatZ).px}
+                  y1={project(bx + dx, by + fd, slatZ).py}
+                  x2={project(bx + dx + 1.5, by + fd, slatZ).px}
+                  y2={project(bx + dx + 1.5, by + fd, slatZ).py}
+                  stroke="#1E293B"
+                  strokeWidth="0.7"
+                />
+              ))}
+              {/* Overhead Hazard Lintel */}
+              <polygon
+                points={flat(
+                  [
+                    [dx - 0.05, fd, 1.25],
+                    [dx + 1.55, fd, 1.25],
+                    [dx + 1.55, fd, 1.38],
+                    [dx - 0.05, fd, 1.38],
+                  ],
+                  bx,
+                  by,
+                )}
+                fill="url(#hazardPattern)"
+              />
+              {/* Dock Staging Number */}
+              {(() => {
+                const numP = project(bx + dx + 0.75, by + fd, 1.52);
+                return (
+                  <text
+                    x={numP.px}
+                    y={numP.py}
+                    textAnchor="middle"
+                    className="fill-slate-600 font-mono font-bold text-[8px] select-none pointer-events-none"
+                  >
+                    0{i + 1}
+                  </text>
+                );
+              })()}
+              {/* Dock Signal LED */}
+              <polygon
+                points={flat(
+                  [
+                    [dx + 0.6, fd, 1.62],
+                    [dx + 0.9, fd, 1.62],
+                    [dx + 0.9, fd, 1.70],
+                    [dx + 0.6, fd, 1.70],
+                  ],
+                  bx,
+                  by,
+                )}
+                fill={isActive ? "var(--accent)" : "#10B981"}
+              />
+              {/* Ground Parking Staging Guide Lines */}
+              <polyline
+                points={flat(
+                  [
+                    [dx + 0.1, fd + 1.8, 0.02],
+                    [dx + 0.1, fd + 0.2, 0.02],
+                    [dx + 1.4, fd + 0.2, 0.02],
+                    [dx + 1.4, fd + 1.8, 0.02],
+                  ],
+                  bx,
+                  by,
+                )}
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="1"
+                strokeDasharray="2 3"
+                opacity="0.8"
+              />
+            </g>
+          );
+        })}
       </IsoBox>
 
-      {/* Roof ridge accent */}
-      <polyline
-        points={flat([[0, 0, h], [fw, 0, h]], bx, by)}
-        fill="none"
-        stroke={isActive ? "var(--accent)" : "oklch(0.38 0.01 260)"}
-        strokeWidth="1.2"
-      />
+      {/* 4. Tier 2: Elevated Command Bridge / Observation Deck */}
+      <IsoBox
+        x={twX}
+        y={twY}
+        fw={twW}
+        fd={twD}
+        h={twH}
+        top="url(#roofSlabGrad)"
+        front="url(#wallLitWhite)"
+        side="url(#wallShadowSlate)"
+      >
+        {/* Wrap-around Panoramic Observation Glass Windows */}
+        <polygon
+          points={flat([[0.2, twD, h + 0.2], [twW - 0.2, twD, h + 0.2], [twW - 0.2, twD, twH - 0.15], [0.2, twD, twH - 0.15]], twX, twY)}
+          fill="url(#ribbonGlassGrad)"
+          stroke="#0284C7"
+          strokeWidth="0.8"
+        />
+        <polygon
+          points={flat([[twW, 0.2, h + 0.2], [twW, twD - 0.2, h + 0.2], [twW, twD - 0.2, twH - 0.15], [twW, 0.2, twH - 0.15]], twX, twY)}
+          fill="url(#ribbonGlassGrad)"
+          stroke="#0284C7"
+          strokeWidth="0.8"
+        />
+        {/* Glass Glare Highlights */}
+        <line
+          x1={project(twX + 0.6, twY + twD, h + 0.25).px}
+          y1={project(twX + 0.6, twY + twD, h + 0.25).py}
+          x2={project(twX + 1.6, twY + twD, twH - 0.2).px}
+          y2={project(twX + 1.6, twY + twD, twH - 0.2).py}
+          stroke="#FFFFFF"
+          strokeWidth="1.2"
+          opacity="0.75"
+        />
+      </IsoBox>
 
-      {/* Adjacent Cargo Crates Stack (on the outer flank of the building) */}
+      {/* 5. Rooftop Command Equipment Array */}
+      {/* Central Radio Tower & Signal Mast */}
+      {(() => {
+        const mBase = project(twX + twW / 2, twY + twD / 2, twH);
+        const mTop = project(twX + twW / 2, twY + twD / 2, twH + 1.0);
+        return (
+          <g pointerEvents="none">
+            <line x1={mBase.px} y1={mBase.py} x2={mTop.px} y2={mTop.py} stroke="#94A3B8" strokeWidth="1.8" />
+            <line x1={mTop.px - 4} y1={mTop.py + 6} x2={mTop.px + 4} y2={mTop.py + 6} stroke="#94A3B8" strokeWidth="1.2" />
+            <circle cx={mTop.px} cy={mTop.py} r={2.5} fill={alertCount > 0 ? "#EF4444" : "var(--accent)"} />
+          </g>
+        );
+      })()}
+
+      {/* Satellite Dish Uplink */}
+      {(() => {
+        const dishP = project(twX + 0.8, twY + 0.6, twH + 0.2);
+        return (
+          <g pointerEvents="none">
+            <ellipse cx={dishP.px} cy={dishP.py} rx={6} ry={3.5} fill="#334155" stroke="#94A3B8" strokeWidth="1" />
+            <line x1={dishP.px} y1={dishP.py} x2={dishP.px - 3} y2={dishP.py - 5} stroke="#E2E8F0" strokeWidth="1.2" />
+            <circle cx={dishP.px - 3} cy={dishP.py - 5} r={1.5} fill="var(--accent)" />
+          </g>
+        );
+      })()}
+
+      {/* Rooftop Drone Helipad on Lower Deck */}
+      {(() => {
+        const padP = project(bx + 1.4, by + 1.6, h + 0.02);
+        return (
+          <g pointerEvents="none" opacity="0.8">
+            <ellipse cx={padP.px} cy={padP.py} rx={12} ry={6} fill="none" stroke="#F59E0B" strokeWidth="1.4" />
+            <text x={padP.px} y={padP.py + 3} textAnchor="middle" className="fill-amber-500 font-mono font-black text-[9px] select-none">
+              H
+            </text>
+          </g>
+        );
+      })()}
+
+      {/* Adjacent Cargo Crates Stack (Flanking the Building) */}
       {isLeft ? (
         <g pointerEvents="none">
-          <IsoBox x={bx - 1.2} y={by + 1.1} fw={1.0} fd={0.9} h={0.7} {...DARK_BOX} />
-          <IsoBox x={bx - 1.2} y={by + 2.2} fw={0.9} fd={0.8} h={0.65} {...DARK_BOX} />
-          <IsoBox x={bx - 0.9} y={by + 1.5} fw={0.8} fd={0.7} h={0.6} {...DARK_BOX} />
+          <IsoBox x={bx - 1.4} y={by + 1.0} fw={1.1} fd={1.0} h={0.8} top="#334155" front="#F59E0B" side="#1E293B" />
+          <IsoBox x={bx - 1.4} y={by + 2.2} fw={1.0} fd={0.9} h={0.7} top="#1E293B" front="#0284C7" side="#0F172A" />
+          <IsoBox x={bx - 1.0} y={by + 1.4} fw={0.85} fd={0.8} h={0.65} top="#F59E0B" front="#1E293B" side="#0F172A" />
         </g>
       ) : (
         <g pointerEvents="none">
-          <IsoBox x={bx + fw + 0.3} y={by + 1.1} fw={1.0} fd={0.9} h={0.7} {...DARK_BOX} />
-          <IsoBox x={bx + fw + 0.3} y={by + 2.2} fw={0.9} fd={0.8} h={0.65} {...DARK_BOX} />
-          <IsoBox x={bx + fw + 0.4} y={by + 1.5} fw={0.8} fd={0.7} h={0.6} {...DARK_BOX} />
+          <IsoBox x={bx + fw + 0.3} y={by + 1.0} fw={1.1} fd={1.0} h={0.8} top="#334155" front="#F59E0B" side="#1E293B" />
+          <IsoBox x={bx + fw + 0.3} y={by + 2.2} fw={1.0} fd={0.9} h={0.7} top="#1E293B" front="#0284C7" side="#0F172A" />
+          <IsoBox x={bx + fw + 0.5} y={by + 1.4} fw={0.85} fd={0.8} h={0.65} top="#F59E0B" front="#1E293B" side="#0F172A" />
         </g>
       )}
 
@@ -345,7 +714,7 @@ function TeamHQBuilding({
       />
 
       {/* Floating Holographic HQ Sign */}
-      <g transform={`translate(${roofCenterP.px}, ${roofCenterP.py - 14})`}>
+      <g transform={`translate(${roofCenterP.px}, ${roofCenterP.py - 18})`}>
         <rect
           x={-68}
           y={-14}
@@ -357,7 +726,6 @@ function TeamHQBuilding({
           strokeWidth={isActive ? 1.5 : 1}
           className="transition-colors group-hover:stroke-accent"
         />
-        {/* Pulsing indicator light */}
         <circle
           cx={-56}
           cy={1}
@@ -612,48 +980,54 @@ function DistrictGround({ district }: { district: DistrictInfo }) {
 
   return (
     <g className="district-ground pointer-events-none">
-      {/* Ground zone boundary - dynamically expands with every category bay and SOP added! */}
+      {/* Ground zone foundation slab with subtle tile texture */}
       <polygon
         points={flat([[0, 0, 0], [W, 0, 0], [W, D, 0], [0, D, 0]], ox, oy)}
-        fill={isActive ? "oklch(0.78 0.18 55 / 0.04)" : "oklch(0.18 0.005 260 / 0.18)"}
-        stroke={isActive ? "var(--accent)" : "oklch(0.32 0.008 260)"}
-        strokeWidth={isActive ? 1.6 : 1}
+        fill={isActive ? "oklch(0.78 0.18 55 / 0.04)" : "oklch(0.16 0.006 260 / 0.25)"}
+        stroke={isActive ? "var(--accent)" : "oklch(0.35 0.008 260)"}
+        strokeWidth={isActive ? 1.8 : 1}
         strokeDasharray={isActive ? "none" : "6 6"}
       />
 
-      {/* Cybernetic Corner Brackets */}
+      {/* Heavy Cybernetic Corner Brackets with Anchor Lights */}
       <polyline
         points={flat([[0, 3.5, 0], [0, 0, 0], [3.5, 0, 0]], ox, oy)}
         fill="none"
-        stroke={isActive ? "var(--accent)" : "oklch(0.42 0.01 260)"}
-        strokeWidth={2.2}
+        stroke={isActive ? "var(--accent)" : "oklch(0.48 0.01 260)"}
+        strokeWidth={2.4}
       />
       <polyline
         points={flat([[W - 3.5, 0, 0], [W, 0, 0], [W, 3.5, 0]], ox, oy)}
         fill="none"
-        stroke={isActive ? "var(--accent)" : "oklch(0.42 0.01 260)"}
-        strokeWidth={2.2}
+        stroke={isActive ? "var(--accent)" : "oklch(0.48 0.01 260)"}
+        strokeWidth={2.4}
       />
       <polyline
         points={flat([[W, D - 3.5, 0], [W, D, 0], [W - 3.5, D, 0]], ox, oy)}
         fill="none"
-        stroke={isActive ? "var(--accent)" : "oklch(0.42 0.01 260)"}
-        strokeWidth={2.2}
+        stroke={isActive ? "var(--accent)" : "oklch(0.48 0.01 260)"}
+        strokeWidth={2.4}
       />
       <polyline
         points={flat([[3.5, D, 0], [0, D, 0], [0, D - 3.5, 0]], ox, oy)}
         fill="none"
-        stroke={isActive ? "var(--accent)" : "oklch(0.42 0.01 260)"}
-        strokeWidth={2.2}
+        stroke={isActive ? "var(--accent)" : "oklch(0.48 0.01 260)"}
+        strokeWidth={2.4}
       />
 
-      {/* Subtle Ground Sector Stamp */}
+      {/* Corner Anchor Light Dots */}
+      <circle cx={project(ox, oy, 0).px} cy={project(ox, oy, 0).py} r={3} fill={isActive ? "var(--accent)" : "#64748B"} />
+      <circle cx={project(ox + W, oy, 0).px} cy={project(ox + W, oy, 0).py} r={3} fill={isActive ? "var(--accent)" : "#64748B"} />
+      <circle cx={project(ox + W, oy + D, 0).px} cy={project(ox + W, oy + D, 0).py} r={3} fill={isActive ? "var(--accent)" : "#64748B"} />
+      <circle cx={project(ox, oy + D, 0).px} cy={project(ox, oy + D, 0).py} r={3} fill={isActive ? "var(--accent)" : "#64748B"} />
+
+      {/* Sector Monospace Coordinate Stamp */}
       <text
         x={groundLabelP.px}
         y={groundLabelP.py}
         className="font-mono text-[11px] font-bold tracking-[0.24em] select-none"
-        fill={isActive ? "var(--accent)" : "oklch(0.42 0.01 260)"}
-        opacity={isActive ? 0.95 : 0.5}
+        fill={isActive ? "var(--accent)" : "oklch(0.5 0.01 260)"}
+        opacity={isActive ? 0.95 : 0.6}
       >
         // DISTRICT 0{index + 1} · {code} CAMPUS SECTOR
       </text>
@@ -762,40 +1136,36 @@ function CampusAvenues() {
   });
 
   return (
-    <g className="campus-avenues pointer-events-none" opacity="0.6">
-      {/* Grand Central Boulevard between Left (Col 0) and Right (Col 1) Districts */}
-      <line
-        {...L(project(105.0, -30), project(105.0, 900))}
-        stroke="oklch(0.32 0.01 260)"
-        strokeWidth="1.4"
-        strokeDasharray="8 8"
+    <g className="campus-avenues pointer-events-none">
+      {/* Grand Central AGV Transit Highway between Left and Right Districts */}
+      <polygon
+        points={flat([
+          [100.0, -40, 0],
+          [113.0, -40, 0],
+          [113.0, 900, 0],
+          [100.0, 900, 0],
+        ])}
+        fill="oklch(0.12 0.005 260 / 0.85)"
       />
-      <line
-        {...L(project(108.0, -30), project(108.0, 900))}
-        stroke="oklch(0.32 0.01 260)"
-        strokeWidth="1.4"
-        strokeDasharray="8 8"
-      />
-      <line
-        {...L(project(106.5, -30), project(106.5, 900))}
-        stroke="oklch(0.24 0.008 260)"
-        strokeWidth="1"
-        strokeDasharray="3 5"
-      />
+      {/* Outer Road Kerbs */}
+      <line {...L(project(100.0, -40), project(100.0, 900))} stroke="#334155" strokeWidth="1.8" />
+      <line {...L(project(113.0, -40), project(113.0, 900))} stroke="#334155" strokeWidth="1.8" />
+      {/* Yellow Dashed Center Line */}
+      <line {...L(project(106.5, -40), project(106.5, 900))} stroke="#F59E0B" strokeWidth="1.4" strokeDasharray="6 6" />
 
-      {/* East-West Cross Avenues separating Rows */}
-      <line
-        {...L(project(0, 130.0), project(300, 130.0))}
-        stroke="oklch(0.3 0.008 260)"
-        strokeWidth="1.3"
-        strokeDasharray="8 8"
+      {/* East-West Cross Avenues */}
+      <polygon
+        points={flat([
+          [-20, 126.0, 0],
+          [320, 126.0, 0],
+          [320, 134.0, 0],
+          [-20, 134.0, 0],
+        ])}
+        fill="oklch(0.12 0.005 260 / 0.85)"
       />
-      <line
-        {...L(project(0, 280.0), project(300, 280.0))}
-        stroke="oklch(0.3 0.008 260)"
-        strokeWidth="1.3"
-        strokeDasharray="8 8"
-      />
+      <line {...L(project(-20, 126.0), project(320, 126.0))} stroke="#334155" strokeWidth="1.5" />
+      <line {...L(project(-20, 134.0), project(320, 134.0))} stroke="#334155" strokeWidth="1.5" />
+      <line {...L(project(-20, 130.0), project(320, 130.0))} stroke="#F59E0B" strokeWidth="1.2" strokeDasharray="6 6" />
     </g>
   );
 }
@@ -1047,10 +1417,10 @@ export function IsoScene({
   const pyMin = (syMin - view.y) / view.k;
   const pyMax = (syMax - view.y) / view.k;
 
-  const Umin = (pxMin - 75) / 26;
-  const Umax = (pxMax - 75) / 26;
-  const Vmin = (pyMin + 20) / 12.5;
-  const Vmax = (pyMax + 20) / 12.5;
+  const Umin = (pxMin - 75) / ISO_STEP_X;
+  const Umax = (pxMax - 75) / ISO_STEP_X;
+  const Vmin = (pyMin + 20) / ISO_STEP_Y;
+  const Vmax = (pyMax + 20) / ISO_STEP_Y;
 
   const rawMinX = (Umin + Vmin) / 2;
   const rawMaxX = (Umax + Vmax) / 2;
@@ -1132,6 +1502,62 @@ export function IsoScene({
           if (dragRef.current.moved < 6) onSelectHall(null);
         }}
       >
+        <defs>
+          {/* Clash of Clans Realistic Directional Cast Ground Shadow */}
+          <linearGradient id="groundShadowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#040508" stopOpacity="0.65" />
+            <stop offset="40%" stopColor="#06080E" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#06080E" stopOpacity="0" />
+          </linearGradient>
+
+          {/* Sunlit Architectural Facade (Front-Left Wall) */}
+          <linearGradient id="wallLitWhite" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#F8FAFC" />
+            <stop offset="50%" stopColor="#ECEFF5" />
+            <stop offset="100%" stopColor="#D9E0EC" />
+          </linearGradient>
+
+          {/* Shaded Architectural Facade (Front-Right Wall) */}
+          <linearGradient id="wallShadowSlate" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#2A3040" />
+            <stop offset="50%" stopColor="#1E2330" />
+            <stop offset="100%" stopColor="#131720" />
+          </linearGradient>
+
+          {/* Overhang Roof Slab Bevel Gradient */}
+          <linearGradient id="roofSlabGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#373E52" />
+            <stop offset="50%" stopColor="#2A3040" />
+            <stop offset="100%" stopColor="#1C202C" />
+          </linearGradient>
+
+          {/* Foundation Concrete Curb Plinth */}
+          <linearGradient id="plinthGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#222735" />
+            <stop offset="100%" stopColor="#141720" />
+          </linearGradient>
+
+          {/* Photovoltaic Solar Atrium Glass Grid */}
+          <linearGradient id="solarGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0284C7" stopOpacity="0.85" />
+            <stop offset="50%" stopColor="#0369A1" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#0C4A6E" />
+          </linearGradient>
+
+          {/* Architectural Ribbon Window Glass with Cyan Sky Glare */}
+          <linearGradient id="ribbonGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.9" />
+            <stop offset="40%" stopColor="#0284C7" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#0F172A" stopOpacity="0.95" />
+          </linearGradient>
+
+          {/* Industrial Yellow/Black 45° Hazard Warning Pattern */}
+          <pattern id="hazardPattern" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#F59E0B" strokeWidth="4" />
+            <line x1="4" y1="0" x2="4" y2="8" stroke="#0F172A" strokeWidth="4" />
+          </pattern>
+        </defs>
+
         {/* Base full screen ground fill */}
         <rect x="0" y="0" width={size.width} height={size.height} fill="var(--ground)" />
 

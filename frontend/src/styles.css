@@ -67,8 +67,8 @@
   --tooltip: oklch(0.13 0.005 270 / 0.95);
 
   /* isometric scene surfaces */
-  --ground: oklch(0.185 0.006 270);
-  --grid: oklch(0.28 0.008 270 / 0.55);
+  --ground: oklch(0.125 0.006 260);
+  --grid: oklch(0.24 0.008 260 / 0.5);
   --hall-top: oklch(0.235 0.008 270);
   --hall-vent: oklch(0.15 0.006 270);
   --hall-rim: oklch(0.32 0.008 270);
