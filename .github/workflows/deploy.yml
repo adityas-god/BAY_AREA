@@ -6,67 +6,32 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
 jobs:
   deploy:
     name: Deploy Container Stack
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: self-hosted
     steps:
+      - name: Configure Git Safe Directory
+        run: git config --global --add safe.directory '*' || true
+
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Setup Node.js on Host VM
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
 
       - name: Build Frontend on Host VM
         working-directory: ./frontend
         run: |
           echo "Building frontend on host machine..."
-          npm ci || npm install
+          npm install
           npm run build
-          # Remove any stale favicon.ico to eliminate old icons completely
-          rm -f .output/public/favicon.ico public/favicon.ico || true
+          rm -f .output/public/favicon.ico || true
           cp -f public/favicon.svg .output/public/favicon.svg 2>/dev/null || true
-          # Verify and ensure index.html exists in .output/public for Nginx SPA serving
           if [ ! -f .output/public/index.html ]; then
-            echo "Searching for generated HTML files in build output..."
-            HTML_FILE=$(find .output -name "*.html" | head -n 1)
-            if [ -n "$HTML_FILE" ]; then
-              echo "Found HTML file at $HTML_FILE. Copying to .output/public/index.html"
-              cp "$HTML_FILE" .output/public/index.html
-            else
-              echo "Synthesizing SPA index.html from bundle assets..."
-              JS_ASSET=$(find .output/public/assets -name "*.js" | sort | head -n 1 | sed 's|^.output/public||')
-              CSS_ASSET=$(find .output/public/assets -name "*.css" | sort | head -n 1 | sed 's|^.output/public||')
-              cat << 'EOF' > .output/public/index.html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GreyOrange — Operations &amp; SOP Command</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=5" />
-    <link rel="shortcut icon" href="/favicon.svg?v=5" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" />
-EOF
-              if [ -n "$CSS_ASSET" ]; then
-                echo "    <link rel=\"stylesheet\" href=\"$CSS_ASSET\" />" >> .output/public/index.html
-              fi
-              cat << 'EOF' >> .output/public/index.html
-  </head>
-  <body class="bg-black text-white antialiased">
-    <div id="root"></div>
-EOF
-              if [ -n "$JS_ASSET" ]; then
-                echo "    <script type=\"module\" src=\"$JS_ASSET\"></script>" >> .output/public/index.html
-              fi
-              cat << 'EOF' >> .output/public/index.html
-  </body>
-</html>
-EOF
+            if [ -f .output/public/_shell.html ]; then
+              cp .output/public/_shell.html .output/public/index.html
             fi
           fi
           echo "Public directory contents:"
@@ -75,8 +40,13 @@ EOF
       - name: Deploy Docker Stack
         run: |
           echo "Deploying BAY_AREA container stack..."
-          docker compose down || true
-          docker compose up -d --build
+          if docker compose version >/dev/null 2>&1; then
+            docker compose down || true
+            docker compose up -d --build --force-recreate
+          else
+            docker-compose down || true
+            docker-compose up -d --build --force-recreate
+          fi
           echo "Waiting 5 seconds for container startup..."
           sleep 5
           docker ps --filter "name=bay-area-frontend"
