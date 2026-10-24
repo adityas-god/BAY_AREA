@@ -78,7 +78,7 @@ function Index() {
     height: typeof window !== "undefined" ? window.innerHeight : 1080,
   });
   const [selectionCollapsed, setSelectionCollapsed] = useState(false);
-  const [hudCollapsed, setHudCollapsed] = useState(false);
+  const [hudCollapsed, setHudCollapsed] = useState(true);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [isCreateSOPOpen, setIsCreateSOPOpen] = useState(false);
@@ -561,11 +561,6 @@ function Index() {
         </div>
 
         <nav className="hidden items-center gap-5 text-xs font-mono text-muted-foreground lg:flex">
-          <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-0.5 text-[11px] text-emerald-400 font-semibold shadow-[0_0_10px_rgba(16,185,129,0.15)]">
-            <Database className="h-3 w-3" />
-            <span>MONGODB SYNCED</span>
-          </span>
-          <span className="text-white/10">|</span>
           <span className="flex items-center gap-1.5 text-foreground font-semibold">
             <Compass className="h-3.5 w-3.5 text-accent animate-spin-slow" />
             <span>DISTRICT: <span className="text-accent">{activeTeam.name.toUpperCase()}</span> (0{activeTeamIndex + 1})</span>
