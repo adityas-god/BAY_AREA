@@ -16,6 +16,9 @@ jobs:
 
       - name: Deploy Docker Stack
         run: |
-          echo "Deploying application on host..."
+          echo "Deploying BAY_AREA on VM..."
           docker compose down || true
           docker compose up -d --build
+          echo "Waiting 5 seconds for container startup..."
+          sleep 5
+          docker ps --filter "name=bay-area-frontend"

@@ -1,0 +1,11 @@
+services:
+  bay-area-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bay-area-frontend
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8083}:80"
+    environment:
+      - NODE_ENV=production
