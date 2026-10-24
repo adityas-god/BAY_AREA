@@ -25,6 +25,48 @@ jobs:
           echo "Building frontend on host machine..."
           npm ci || npm install
           npm run build
+          # Verify and ensure index.html exists in .output/public for Nginx SPA serving
+          if [ ! -f .output/public/index.html ]; then
+            echo "Searching for generated HTML files in build output..."
+            HTML_FILE=$(find .output -name "*.html" | head -n 1)
+            if [ -n "$HTML_FILE" ]; then
+              echo "Found HTML file at $HTML_FILE. Copying to .output/public/index.html"
+              cp "$HTML_FILE" .output/public/index.html
+            else
+              echo "Synthesizing SPA index.html from bundle assets..."
+              JS_ASSET=$(find .output/public/assets -name "*.js" | sort | head -n 1 | sed 's|^.output/public||')
+              CSS_ASSET=$(find .output/public/assets -name "*.css" | sort | head -n 1 | sed 's|^.output/public||')
+              cat << 'EOF' > .output/public/index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GreyOrange — Operations &amp; SOP Command</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+EOF
+              if [ -n "$CSS_ASSET" ]; then
+                echo "    <link rel=\"stylesheet\" href=\"$CSS_ASSET\" />" >> .output/public/index.html
+              fi
+              cat << 'EOF' >> .output/public/index.html
+  </head>
+  <body class="bg-black text-white antialiased">
+    <div id="root"></div>
+EOF
+              if [ -n "$JS_ASSET" ]; then
+                echo "    <script type=\"module\" src=\"$JS_ASSET\"></script>" >> .output/public/index.html
+              fi
+              cat << 'EOF' >> .output/public/index.html
+  </body>
+</html>
+EOF
+            fi
+          fi
+          echo "Public directory contents:"
+          ls -la .output/public/
 
       - name: Deploy Docker Stack
         run: |

@@ -18,6 +18,7 @@ import {
   Activity,
   Layers,
   Sparkles,
+  ExternalLink,
 } from "lucide-react";
 
 interface ScifiTerminalProps {
@@ -259,6 +260,34 @@ export function ScifiTerminal({ sop, isOpen, onClose, onSave }: ScifiTerminalPro
                   {formData.summary}
                 </p>
 
+                {/* Direct Link Redirection Banner */}
+                {formData.contentLink && (
+                  <div className="mt-2 flex items-center justify-between gap-3 rounded border border-accent/60 bg-accent/15 p-3.5 backdrop-blur-sm">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/20 border border-accent/40 text-accent">
+                        <ExternalLink className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="font-mono text-xs font-bold text-accent">
+                          LIVE DOCUMENTATION / ROSTER LINK
+                        </div>
+                        <div className="font-mono text-[11px] text-muted-foreground truncate max-w-sm sm:max-w-md">
+                          {formData.linkText || formData.contentLink}
+                        </div>
+                      </div>
+                    </div>
+                    <a
+                      href={formData.contentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded bg-accent px-3 py-1.5 font-mono text-xs font-bold text-black shadow-sm transition-all hover:bg-accent/90 shrink-0"
+                    >
+                      <span>OPEN PAGE</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                )}
+
                 {/* Trigger Condition Alert Box */}
                 <div className="mt-2 flex items-start gap-3 rounded border border-accent/30 bg-accent/5 p-3">
                   <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
@@ -423,6 +452,29 @@ export function ScifiTerminal({ sop, isOpen, onClose, onSave }: ScifiTerminalPro
                   onChange={(e) => setFormData({ ...formData, triggerCondition: e.target.value })}
                   className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-accent focus:border-accent focus:outline-none"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="text-muted-foreground">CONTENT / REDIRECT LINK (URL)</label>
+                  <input
+                    type="text"
+                    placeholder="https://docs.google.com/... or https://atlassian.net/..."
+                    value={formData.contentLink || ""}
+                    onChange={(e) => setFormData({ ...formData, contentLink: e.target.value })}
+                    className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-accent font-mono text-[11px] focus:border-accent focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-muted-foreground">LINK DISPLAY TEXT</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Master Template of DIR .docx"
+                    value={formData.linkText || ""}
+                    onChange={(e) => setFormData({ ...formData, linkText: e.target.value })}
+                    className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground text-xs focus:border-accent focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* Editable Steps */}

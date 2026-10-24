@@ -41,6 +41,8 @@ export function CreateSOPDialog({
   const [priority, setPriority] = useState<SOPPriority>("HIGH");
   const [summary, setSummary] = useState("");
   const [triggerCondition, setTriggerCondition] = useState("");
+  const [contentLink, setContentLink] = useState("");
+  const [linkText, setLinkText] = useState("");
   const [initialStepCmd, setInitialStepCmd] = useState("greyctl status --zone A");
 
   // Keep state in sync whenever dialog opens or props change
@@ -59,6 +61,8 @@ export function CreateSOPDialog({
       setTitle("");
       setSummary("");
       setTriggerCondition("");
+      setContentLink("");
+      setLinkText("");
       setPriority("HIGH");
       setInitialStepCmd("greyctl status --zone A");
     }
@@ -103,6 +107,8 @@ export function CreateSOPDialog({
       updatedAt: new Date().toISOString().slice(0, 10),
       summary: summary.trim() || `Operational standard procedure for ${title.trim()}.`,
       triggerCondition: triggerCondition.trim() || "Manual dispatch or telemetry threshold exceeded.",
+      ...(contentLink.trim() ? { contentLink: contentLink.trim() } : {}),
+      ...(linkText.trim() ? { linkText: linkText.trim() } : {}),
       steps: [
         {
           id: `step-${now}-1`,
@@ -254,6 +260,29 @@ export function CreateSOPDialog({
               onChange={(e) => setTriggerCondition(e.target.value)}
               className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
             />
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="text-muted-foreground">CONTENT / REDIRECT LINK (URL)</label>
+              <input
+                type="text"
+                placeholder="https://docs.google.com/... or https://atlassian.net/..."
+                value={contentLink}
+                onChange={(e) => setContentLink(e.target.value)}
+                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-accent font-mono text-[11px] focus:border-accent focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-muted-foreground">LINK DISPLAY TEXT</label>
+              <input
+                type="text"
+                placeholder="e.g. Master Template of DIR .docx"
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground text-xs focus:border-accent focus:outline-none"
+              />
+            </div>
           </div>
 
           <div>

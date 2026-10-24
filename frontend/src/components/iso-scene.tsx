@@ -157,6 +157,9 @@ function HallBox({
       />
       {selected && (() => {
         const p = project(gx + fw / 2, gy + fd / 2, h + 0.65);
+        const displayTitle = hall.title || hall.name;
+        const truncated = displayTitle.length > 30 ? `${displayTitle.slice(0, 28)}...` : displayTitle;
+        const badgeW = Math.max(140, truncated.length * 6.5 + 24);
         return (
           <g
             className="cursor-pointer"
@@ -166,22 +169,30 @@ function HallBox({
             }}
           >
             <rect
-              x={p.px - 64}
-              y={p.py - 14}
-              width={128}
-              height={26}
-              rx={3}
+              x={p.px - badgeW / 2}
+              y={p.py - 24}
+              width={badgeW}
+              height={36}
+              rx={4}
               fill="oklch(0.1 0.005 270 / 0.95)"
               stroke="var(--accent)"
               strokeWidth={1.5}
             />
             <text
               x={p.px}
+              y={p.py - 11}
+              textAnchor="middle"
+              className="fill-accent font-mono font-bold text-[9px] tracking-wider pointer-events-none select-none"
+            >
+              {hall.teamCode ? `${hall.teamCode} · ` : ""}{hall.name}
+            </text>
+            <text
+              x={p.px}
               y={p.py + 4}
               textAnchor="middle"
-              className="fill-accent font-mono font-bold text-[10px] tracking-wider pointer-events-none select-none"
+              className="fill-foreground font-mono font-bold text-[10px] pointer-events-none select-none"
             >
-              [OPEN TERMINAL]
+              {truncated}
             </text>
           </g>
         );
@@ -1195,16 +1206,19 @@ export function IsoScene({
             const a = project(alertHall.gx + 1.5, alertHall.gy, HALL_H);
             const tx = a.px + 54;
             const ty = a.py - 54;
+            const displayTitle = alertHall.title || alertHall.name;
+            const truncatedTitle = displayTitle.length > 28 ? `${displayTitle.slice(0, 26)}...` : displayTitle;
+            const boxWidth = Math.max(180, truncatedTitle.length * 7.5 + 24);
             return (
               <g key={`alert-callout-${alertHall.id}`} pointerEvents="none">
                 <line x1={a.px} y1={a.py - 8} x2={tx} y2={ty + 40} stroke="var(--destructive)" strokeWidth="1.5" opacity="0.8" />
                 <circle cx={a.px} cy={a.py} r="3" fill="var(--destructive)" />
-                <rect x={tx} y={ty} width="176" height="44" rx="3" fill="var(--tooltip)" stroke="var(--border)" />
+                <rect x={tx} y={ty} width={boxWidth} height="44" rx="3" fill="var(--tooltip)" stroke="var(--border)" />
                 <text x={tx + 10} y={ty + 16} className="fill-destructive font-mono" fontSize="9" letterSpacing="2">
-                  ALERT · {alertHall.teamCode || "CRITICAL"}
+                  ALERT · {alertHall.teamCode ? `${alertHall.teamCode} · ` : ""}{alertHall.name}
                 </text>
-                <text x={tx + 10} y={ty + 34} className="fill-foreground font-mono" fontSize="11">
-                  {alertHall.name} · inlet 31.2°C
+                <text x={tx + 10} y={ty + 34} className="fill-foreground font-mono font-bold" fontSize="11">
+                  {truncatedTitle}
                 </text>
               </g>
             );

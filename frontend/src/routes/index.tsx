@@ -11,6 +11,8 @@ import {
   Layers,
   Compass,
   Maximize,
+  ExternalLink,
+  Link2,
 } from "lucide-react";
 import { IsoScene, DistrictInfo, CategoryPartitionInfo } from "@/components/iso-scene";
 import { INITIAL_VIEW, type View, type Hall, HALL_STEP, project } from "@/lib/iso";
@@ -189,6 +191,7 @@ function Index() {
           alert: s.alert ?? s.priority === "CRITICAL",
           teamId: s.teamId,
           teamCode: team.code,
+          title: s.title,
         });
       });
     });
@@ -777,8 +780,21 @@ function Index() {
                               </span>
                             </div>
 
-                            <div className="mt-1 text-[11px] truncate text-muted-foreground font-medium">
-                              {s.title}
+                            <div className="mt-1 flex items-center justify-between gap-1 text-[11px] text-muted-foreground font-medium">
+                              <span className="truncate">{s.title}</span>
+                              {s.contentLink && (
+                                <a
+                                  href={s.contentLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  title={`Open ${s.linkText || "External Link"}`}
+                                  className="flex shrink-0 items-center gap-1 rounded bg-accent/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-accent hover:bg-accent hover:text-black transition-colors"
+                                >
+                                  <ExternalLink className="h-2.5 w-2.5" />
+                                  <span>LINK</span>
+                                </a>
+                              )}
                             </div>
 
                             <div className="mt-2 flex items-center gap-2">
@@ -820,7 +836,20 @@ function Index() {
 
             {/* Selected SOP Action Card */}
             {selectedSop && (
-              <div className="mt-3 border-t border-border/60 pt-3">
+              <div className="mt-3 space-y-2 border-t border-border/60 pt-3">
+                {selectedSop.contentLink && (
+                  <a
+                    href={selectedSop.contentLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded border border-accent/60 bg-accent/20 px-3 py-2 font-mono text-xs font-bold text-accent shadow-md transition-all hover:bg-accent hover:text-black"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span className="truncate">
+                      OPEN {selectedSop.linkText || "DOCUMENTATION / ROSTER"}
+                    </span>
+                  </a>
+                )}
                 <button
                   onClick={() => handleOpenTerminal(selectedSop.id)}
                   className="flex w-full items-center justify-center gap-2 rounded bg-accent px-3 py-2 font-mono text-xs font-bold text-accent-foreground shadow-md transition-all hover:bg-accent/90"

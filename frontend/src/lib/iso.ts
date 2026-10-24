@@ -16,6 +16,7 @@ export interface Hall {
   row: number;
   teamId?: string;
   teamCode?: string;
+  title?: string;
 }
 
 export interface View {
