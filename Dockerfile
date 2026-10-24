@@ -1,26 +1,11 @@
-# Dockerfile for Frontend (SPA / Static Web App)
-FROM node:22 AS builder
-
-WORKDIR /app
-
-# Copy package manifests
-COPY frontend/package*.json ./
-
-# Cleanly install dependencies using npm install
-RUN npm install
-
-# Copy source code and build
-COPY frontend/ ./
-RUN npm run build
-
-# Production Nginx stage
+# Production Nginx stage (pre-built on host)
 FROM nginx:alpine
 
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy built assets (.output/public or dist)
-COPY --from=builder /app/.output/public /usr/share/nginx/html
+# Copy pre-built production bundle from frontend/.output/public or frontend/dist
+COPY frontend/.output/public /usr/share/nginx/html
 
 # Expose HTTP port
 EXPOSE 80

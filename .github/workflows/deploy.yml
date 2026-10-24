@@ -14,9 +14,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js on Host VM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build Frontend on Host VM
+        working-directory: ./frontend
+        run: |
+          echo "Building frontend on host machine..."
+          npm ci || npm install
+          npm run build
+
       - name: Deploy Docker Stack
         run: |
-          echo "Deploying BAY_AREA on VM..."
+          echo "Deploying BAY_AREA container stack..."
           docker compose down || true
           docker compose up -d --build
           echo "Waiting 5 seconds for container startup..."
