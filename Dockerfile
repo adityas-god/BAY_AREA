@@ -1,15 +1,12 @@
-# Dockerfile for Frontend (Built with Node Debian/Slim for native rollup/rolldown compatibility)
-FROM node:22-slim AS builder
+# Dockerfile for Frontend (SPA / Static Web App)
+FROM node:22 AS builder
 
 WORKDIR /app
-
-# Install build dependencies if needed
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Copy package manifests
 COPY frontend/package*.json ./
 
-# Install with npm install (fallback-resilient)
+# Cleanly install dependencies using npm install
 RUN npm install
 
 # Copy source code and build
