@@ -78,14 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Brickwatt" },
-      { name: "description", content: "Isometric command view of Brickwatt data halls." },
-      { name: "author", content: "Brickwatt" },
-      { property: "og:title", content: "Brickwatt" },
-      { property: "og:description", content: "Isometric command view of Brickwatt data halls." },
+      { title: "GreyOrange — Operations & SOP Command" },
+      { name: "description", content: "Robotics Operations and SOP command canvas for GreyOrange." },
+      { name: "author", content: "GreyOrange" },
+      { property: "og:title", content: "GreyOrange — Operations & SOP Command" },
+      { property: "og:description", content: "Robotics Operations and SOP command canvas for GreyOrange." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [
       {
