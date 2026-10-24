@@ -1,0 +1,21 @@
+name: Deploy to Production VM
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Container Stack
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy Docker Stack
+        run: |
+          echo "Deploying application on host..."
+          docker compose down || true
+          docker compose up -d --build
