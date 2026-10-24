@@ -13,6 +13,16 @@ import {
   Maximize,
   ExternalLink,
   Link2,
+  Activity,
+  ShieldAlert,
+  Bot,
+  Clock,
+  AlertTriangle,
+  Radio,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { IsoScene, DistrictInfo, CategoryPartitionInfo } from "@/components/iso-scene";
 import { INITIAL_VIEW, type View, type Hall, HALL_STEP, project } from "@/lib/iso";
@@ -56,20 +66,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function Stat({ label, value, unit, highlight }: { label: string; value: string; unit?: string; highlight?: boolean }) {
-  return (
-    <div>
-      <div className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground">{label}</div>
-      <div className={`mt-0.5 font-display text-2xl font-bold leading-none md:text-[28px] ${highlight ? "text-accent" : ""}`}>
-        {value}
-        {unit && (
-          <span className="ml-1 font-mono text-[11px] font-medium text-muted-foreground">{unit}</span>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function Index() {
   const [teams, setTeams] = useState<Team[]>(INITIAL_TEAMS);
   const [sops, setSops] = useState<SOP[]>(INITIAL_SOPS);
@@ -82,6 +78,7 @@ function Index() {
     height: typeof window !== "undefined" ? window.innerHeight : 1080,
   });
   const [selectionCollapsed, setSelectionCollapsed] = useState(false);
+  const [hudCollapsed, setHudCollapsed] = useState(false);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [isCreateSOPOpen, setIsCreateSOPOpen] = useState(false);
@@ -548,35 +545,35 @@ function Index() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       {/* Top Cybernetic Nav Header */}
-      <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border/60 bg-black/40 px-5 backdrop-blur-md md:px-8">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-black/60 px-5 backdrop-blur-xl md:px-8">
         <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded bg-accent font-display text-[15px] font-black leading-none text-black">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent font-display text-[16px] font-black leading-none text-black shadow-[0_0_15px_rgba(255,140,0,0.35)]">
             G
           </div>
           <div className="flex flex-col">
             <span className="font-display text-sm font-bold tracking-[0.22em] text-foreground">
               GREY<span className="text-accent">ORANGE</span>
             </span>
-            <span className="font-mono text-[9px] tracking-wider text-muted-foreground">
-              ROBOTICS OPERATIONS COMMAND · CAMPUS TOWN
+            <span className="font-mono text-[9px] tracking-wider text-muted-foreground/80">
+              ROBOTICS OPERATIONS COMMAND · BAY AREA
             </span>
           </div>
         </div>
 
-        <nav className="hidden items-center gap-6 text-xs font-mono text-muted-foreground lg:flex">
-          <span className="flex items-center gap-1.5 text-accent">
-            <Database className="h-3.5 w-3.5" />
-            <span>MONGODB CONNECTED</span>
+        <nav className="hidden items-center gap-5 text-xs font-mono text-muted-foreground lg:flex">
+          <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-0.5 text-[11px] text-emerald-400 font-semibold shadow-[0_0_10px_rgba(16,185,129,0.15)]">
+            <Database className="h-3 w-3" />
+            <span>MONGODB SYNCED</span>
           </span>
-          <span className="text-border">|</span>
-          <span className="flex items-center gap-1.5 text-foreground">
+          <span className="text-white/10">|</span>
+          <span className="flex items-center gap-1.5 text-foreground font-semibold">
             <Compass className="h-3.5 w-3.5 text-accent animate-spin-slow" />
-            <span>DISTRICT: {activeTeam.name.toUpperCase()} (0{activeTeamIndex + 1})</span>
+            <span>DISTRICT: <span className="text-accent">{activeTeam.name.toUpperCase()}</span> (0{activeTeamIndex + 1})</span>
           </span>
-          <span className="text-border">|</span>
+          <span className="text-white/10">|</span>
           <button
             onClick={navigateToAllBays}
-            className="flex items-center gap-1.5 rounded border border-border/70 bg-panel/70 px-2.5 py-1 text-xs font-mono font-bold text-muted-foreground transition-all hover:border-accent hover:text-accent hover:bg-accent/10"
+            className="flex items-center gap-1.5 rounded border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-mono font-bold text-muted-foreground transition-all hover:border-accent hover:text-accent hover:bg-accent/10"
             title="Overview / Zoom out to frame all bay areas across campus"
           >
             <Maximize className="h-3.5 w-3.5 text-accent" />
@@ -595,14 +592,14 @@ function Index() {
           </button>
           <button
             onClick={() => handleOpenAddCategoryZone(activeTeam.id)}
-            className="hidden sm:flex items-center gap-1.5 rounded border border-accent/40 bg-accent/10 px-3 py-1.5 font-mono text-xs font-bold text-accent transition-colors hover:bg-accent/20"
+            className="hidden sm:flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 font-mono text-xs font-bold text-accent transition-all hover:bg-accent/25 hover:border-accent shadow-[0_0_12px_rgba(255,140,0,0.1)]"
           >
             <Layers className="h-3.5 w-3.5" />
             <span>+ CATEGORY BAY</span>
           </button>
           <button
             onClick={() => setIsCreateTeamOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 rounded border border-border px-3 py-1.5 font-mono text-xs font-bold text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+            className="hidden sm:flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-3 py-1.5 font-mono text-xs font-bold text-foreground/90 transition-all hover:border-accent hover:text-accent hover:bg-white/10"
           >
             <FolderPlus className="h-3.5 w-3.5" />
             <span>+ NEW TEAM</span>
@@ -612,9 +609,9 @@ function Index() {
               setPreselectedCategory(undefined);
               setIsCreateSOPOpen(true);
             }}
-            className="flex items-center gap-1.5 rounded bg-accent px-3 py-1.5 font-mono text-xs font-bold text-accent-foreground transition-colors hover:bg-accent/90"
+            className="flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-1.5 font-mono text-xs font-bold text-black transition-all hover:bg-accent/90 shadow-[0_0_18px_rgba(255,140,0,0.35)]"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5 stroke-[3]" />
             <span>+ CONFIGURE SOP</span>
           </button>
         </div>
@@ -639,24 +636,133 @@ function Index() {
           onSizeChange={setCanvasSize}
         />
 
-        {/* Top-Left Telemetry HUD */}
-        <div className="pointer-events-none absolute left-5 top-4 flex items-start gap-6 md:left-8 md:top-5 md:gap-10">
-          <div>
-            <div className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground">CAMPUS DISTRICT 0{activeTeamIndex + 1}</div>
-            <h1 className="mt-0.5 font-display text-lg font-bold leading-[1.15] tracking-wide text-accent md:text-xl">
-              {activeTeam.name.toUpperCase()}
-            </h1>
-          </div>
-          <Stat label="DISTRICT SOPS" value={String(teamSops.length)} unit="BLOCKS" />
-          <div className="hidden sm:block">
-            <Stat label="COMPLIANCE" value={`${avgCompliance}%`} highlight={avgCompliance >= 90} />
-          </div>
-          <Stat
-            label="CRITICAL P1"
-            value={String(criticalCount)}
-            unit="ALERT"
-            highlight={criticalCount > 0}
-          />
+        {/* Top-Left Telemetry HUD — GreyOrange Mission Command Glass Panel */}
+        <div className="absolute left-4 top-4 z-20 flex flex-col gap-1.5 pointer-events-auto md:left-6 md:top-4 select-none">
+          {hudCollapsed ? (
+            /* Collapsed Compact Capsule Pill */
+            <button
+              onClick={() => setHudCollapsed(false)}
+              title="Expand telemetry panel"
+              className="group flex items-center gap-2.5 rounded-lg border border-accent/40 bg-black/85 px-3 py-1.5 text-xs shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl transition-all hover:border-accent hover:bg-black/95 hover:shadow-[0_0_20px_rgba(255,140,0,0.25)]"
+            >
+              <span className="font-mono text-[11px] font-bold tracking-wider text-accent">
+                {activeTeam.name.toUpperCase()}
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground/80">
+                · {teamSops.length} SOPS
+              </span>
+              {criticalCount > 0 && (
+                <span className="rounded bg-destructive/20 border border-destructive/40 px-1.5 py-0.5 font-mono text-[9px] font-bold text-destructive">
+                  {criticalCount} P1
+                </span>
+              )}
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-y-0.5 group-hover:text-accent" />
+            </button>
+          ) : (
+            /* Expanded Full Telemetry Mission Control */
+            <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="relative flex items-center gap-3 rounded-lg border border-accent/35 bg-black/80 px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+                {/* District Identifier Badge */}
+                <div className="flex items-center gap-2.5 border-r border-white/10 pr-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md border border-accent/40 bg-accent/15 text-accent shadow-[0_0_15px_rgba(255,140,0,0.25)]">
+                    <Radio className="h-4 w-4 text-accent" />
+                  </div>
+                  <div>
+                    <div className="font-mono text-[9px] font-semibold tracking-[0.2em] text-muted-foreground">
+                      CAMPUS ZONE
+                    </div>
+                    <h1 className="font-display text-sm font-bold tracking-wider text-foreground">
+                      {activeTeam.name.toUpperCase()}
+                      <span className="ml-1.5 font-mono text-[11px] font-normal text-accent">[{activeTeam.code}]</span>
+                    </h1>
+                  </div>
+                </div>
+
+                {/* SOP Inventory Metric */}
+                <div className="flex items-center gap-2 border-r border-white/10 px-3">
+                  <div className="flex h-7 w-7 items-center justify-center rounded bg-white/5 text-muted-foreground">
+                    <Layers className="h-3.5 w-3.5 text-accent" />
+                  </div>
+                  <div>
+                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">SOPS</div>
+                    <div className="font-display text-base font-bold leading-none text-foreground">
+                      {teamSops.length}
+                      <span className="ml-1 font-mono text-[9px] font-normal text-muted-foreground">BLOCKS</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compliance & Health Metric */}
+                <div className="hidden sm:flex items-center gap-2 border-r border-white/10 px-3">
+                  <div className="flex h-7 w-7 items-center justify-center rounded bg-white/5 text-muted-foreground">
+                    <Activity className="h-3.5 w-3.5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">COMPLIANCE</div>
+                    <div className={`font-display text-base font-bold leading-none ${avgCompliance >= 90 ? "text-emerald-400" : "text-amber-400"}`}>
+                      {avgCompliance}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Critical P1 Live Alert Indicator */}
+                <div className="flex items-center gap-2 border-r border-white/10 px-3">
+                  <div className={`flex h-7 w-7 items-center justify-center rounded ${criticalCount > 0 ? "bg-destructive/20 text-destructive" : "bg-white/5 text-muted-foreground"}`}>
+                    <ShieldAlert className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">CRITICAL P1</div>
+                    <div className={`font-display text-base font-bold leading-none ${criticalCount > 0 ? "text-destructive font-black" : "text-foreground"}`}>
+                      {criticalCount}
+                      <span className="ml-1 font-mono text-[9px] font-normal text-muted-foreground">ACTIVE</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SLA Target */}
+                <div className="hidden lg:flex items-center gap-2 px-3">
+                  <div className="flex h-7 w-7 items-center justify-center rounded bg-white/5 text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5 text-accent" />
+                  </div>
+                  <div>
+                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">SLA TARGET</div>
+                    <div className="font-display text-base font-bold leading-none text-accent">
+                      {activeTeam.slaMinutes || 15}
+                      <span className="ml-1 font-mono text-[9px] font-normal text-muted-foreground">MIN</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Collapse Control Toggle */}
+                <button
+                  onClick={() => setHudCollapsed(true)}
+                  title="Collapse telemetry panel"
+                  className="ml-1 flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
+                >
+                  <ChevronUp className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Sub-Banner: Team Mandate & Monitored Fleets */}
+              <div className="hidden md:flex items-center justify-between rounded border border-white/10 bg-black/70 px-3 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur-md">
+                <div className="flex items-center gap-2 truncate max-w-[500px]">
+                  <span className="flex items-center gap-1 text-foreground/90 font-semibold">
+                    <Bot className="h-3 w-3 text-accent" />
+                    <span>FLEETS:</span>
+                  </span>
+                  <span className="truncate">
+                    {activeTeam.fleets && activeTeam.fleets.length > 0
+                      ? activeTeam.fleets.join(" · ")
+                      : "Butler M500 Fleet · PickPut Stations"}
+                  </span>
+                </div>
+                <div className="ml-3 shrink-0 text-accent/90">
+                  <span className="text-white/30 mr-1.5">|</span>
+                  LEAD: {activeTeam.lead || "Operations Specialist"}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Selection Sidebar (Collapsible) */}
@@ -665,17 +771,17 @@ function Index() {
             onClick={() => setSelectionCollapsed(false)}
             aria-label="Expand selection panel"
             title="Expand selection panel"
-            className="group absolute right-4 top-4 flex items-center gap-2.5 border border-border/80 bg-panel px-3 py-2 backdrop-blur-md transition-all hover:border-accent hover:bg-panel/95 md:right-8 md:top-5"
+            className="group absolute right-4 top-4 z-20 flex items-center gap-2.5 rounded-lg border border-white/10 bg-black/75 px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:border-accent/60 hover:bg-black/90 md:right-6 md:top-4"
           >
             <ChevronLeft className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-x-0.5 group-hover:text-accent" />
             <div className="text-left">
-              <div className="font-mono text-[9px] tracking-[0.24em] text-muted-foreground">SOP REPOSITORY</div>
+              <div className="font-mono text-[9px] tracking-[0.24em] text-muted-foreground/90 font-medium">SOP REPOSITORY</div>
               <div className="font-display text-[13px] font-bold text-foreground">
                 {teamSops.length} SOPs · {activeTeam.code}
               </div>
             </div>
             {selectedSop && (
-              <span className="ml-1 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-accent">
+              <span className="ml-1 rounded-md bg-accent/20 border border-accent/40 px-2 py-0.5 font-mono text-[10px] font-bold text-accent shadow-[0_0_10px_rgba(255,140,0,0.2)]">
                 {selectedSop.code}
               </span>
             )}

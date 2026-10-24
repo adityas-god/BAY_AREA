@@ -30,6 +30,7 @@ export interface SOP {
   summary: string;
   triggerCondition: string;
   steps: SOPStep[];
+  escalation?: EscalationRule;
   contentLink?: string | undefined;
   linkText?: string | undefined;
   // Isometric campus block coordinates

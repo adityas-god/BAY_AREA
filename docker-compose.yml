@@ -9,3 +9,13 @@ services:
       - "${HOST_PORT:-8083}:80"
     environment:
       - NODE_ENV=production
+    networks:
+      - bay_area_net
+
+networks:
+  bay_area_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.20.0/24
