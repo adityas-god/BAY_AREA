@@ -706,29 +706,28 @@ function Index() {
         {selectionCollapsed ? (
           <button
             onClick={() => setSelectionCollapsed(false)}
-            aria-label="Expand selection panel"
-            title="Expand selection panel"
-            className="group absolute right-4 top-4 z-20 flex items-center gap-2.5 rounded-lg border border-white/10 bg-black/75 px-3.5 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:border-accent/60 hover:bg-black/90 md:right-6 md:top-4"
+            aria-label="Expand SOP repository"
+            title="Expand SOP repository"
+            className="group absolute right-4 top-4 z-20 flex items-center gap-2 rounded border border-white/10 bg-black/80 px-3 py-1.5 backdrop-blur-md transition-all hover:border-accent hover:bg-black/95 md:right-6 md:top-4"
           >
-            <ChevronLeft className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-x-0.5 group-hover:text-accent" />
-            <div className="text-left">
-              <div className="font-mono text-[9px] tracking-[0.24em] text-muted-foreground/90 font-medium">SOP REPOSITORY</div>
-              <div className="font-display text-[13px] font-bold text-foreground">
-                {teamSops.length} SOPs · {activeTeam.code}
-              </div>
-            </div>
+            <ChevronLeft className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:-translate-x-0.5 group-hover:text-accent" />
+            <span className="font-mono text-[10px] tracking-wider text-muted-foreground">SOPS</span>
+            <span className="font-display text-xs font-bold text-foreground">
+              {teamSops.length} · {activeTeam.code}
+            </span>
             {selectedSop && (
-              <span className="ml-1 rounded-md bg-accent/20 border border-accent/40 px-2 py-0.5 font-mono text-[10px] font-bold text-accent shadow-[0_0_10px_rgba(255,140,0,0.2)]">
+              <span className="rounded bg-accent/15 px-1.5 py-0.2 font-mono text-[9px] font-bold text-accent">
                 {selectedSop.code}
               </span>
             )}
           </button>
         ) : (
-          <aside className="absolute right-4 top-4 w-60 border border-border/70 bg-panel/95 p-4 backdrop-blur-md transition-all md:right-8 md:top-5 md:w-72 shadow-2xl">
-            <div className="flex items-start justify-between">
+          <aside className="absolute right-4 top-4 z-20 w-64 border border-white/10 bg-black/85 p-3.5 backdrop-blur-xl transition-all md:right-6 md:top-4 md:w-72 shadow-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
               <div>
-                <div className="font-mono text-[10px] tracking-[0.28em] text-muted-foreground">SOP REPOSITORY</div>
-                <div className="mt-1 font-display text-[16px] font-bold tracking-wide">
+                <div className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground">SOP REPOSITORY</div>
+                <div className="font-display text-sm font-bold text-foreground">
                   {teamSops.length} SOPs · {activeTeam.code}
                 </div>
               </div>
@@ -736,14 +735,14 @@ function Index() {
                 onClick={() => setSelectionCollapsed(true)}
                 title="Collapse panel"
                 aria-label="Collapse panel"
-                className="mt-0.5 -mr-1 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="rounded p-1 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
-            {/* SOP List organized by Category Partition Bays */}
-            <div className="custom-scrollbar mt-3 max-h-[50vh] space-y-4 overflow-y-auto pr-1">
+            {/* SOP List organized by Category */}
+            <div className="custom-scrollbar mt-2 max-h-[55vh] space-y-3 overflow-y-auto pr-1">
               {activeTeamCategories.map((catName) => {
                 const sopsInCat = teamSops.filter(
                   (s) =>
@@ -753,21 +752,19 @@ function Index() {
                 );
 
                 return (
-                  <div key={catName} className="space-y-1.5 rounded border border-border/40 bg-black/40 p-2.5">
-                    {/* Category Header */}
-                    <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
-                      <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-accent">
+                  <div key={catName} className="space-y-1">
+                    {/* Category Title */}
+                    <div className="flex items-center justify-between py-1 text-xs">
+                      <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold text-accent/90">
                         <Layers className="h-3 w-3 shrink-0" />
-                        <span className="truncate max-w-[140px]">{catName}</span>
+                        <span className="truncate max-w-[150px]">{catName}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-mono text-[9px] text-muted-foreground">
-                          {sopsInCat.length}
-                        </span>
+                      <div className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+                        <span>{sopsInCat.length}</span>
                         <button
                           onClick={() => handleOpenAddSopToCategory(activeTeam.id, catName)}
                           title={`Add SOP to ${catName}`}
-                          className="rounded p-0.5 text-accent hover:bg-accent/20 transition-colors"
+                          className="rounded p-0.5 hover:text-accent transition-colors"
                         >
                           <Plus className="h-3 w-3" />
                         </button>
@@ -775,7 +772,7 @@ function Index() {
                           <button
                             onClick={() => handleDeleteCategory(activeTeam.id, catName)}
                             title={`Remove empty category ${catName}`}
-                            className="rounded p-0.5 text-destructive hover:bg-destructive/20 transition-colors"
+                            className="rounded p-0.5 text-destructive hover:bg-destructive/10 transition-colors"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -783,13 +780,13 @@ function Index() {
                       </div>
                     </div>
 
-                    {/* SOP Items inside Category */}
+                    {/* SOP Cards */}
                     {sopsInCat.length === 0 ? (
-                      <div className="py-2 text-center font-mono text-[10px] text-muted-foreground/60 italic">
+                      <div className="py-1.5 text-center font-mono text-[10px] text-muted-foreground/50 italic">
                         Empty bay ·{" "}
                         <button
                           onClick={() => handleOpenAddSopToCategory(activeTeam.id, catName)}
-                          className="text-accent underline not-italic font-bold"
+                          className="text-accent underline not-italic"
                         >
                           + Add SOP
                         </button>
@@ -798,68 +795,49 @@ function Index() {
                       sopsInCat.map((s) => {
                         const active = s.id === selectedId;
                         return (
-                          <button
+                          <div
                             key={s.id}
                             onClick={() => setSelectedId(active ? null : s.id)}
                             onDoubleClick={() => handleOpenTerminal(s.id)}
-                            className={`flex w-full flex-col rounded p-2 text-left transition-all ${
+                            className={`group flex items-center justify-between gap-2 rounded border px-2.5 py-1.5 cursor-pointer transition-colors ${
                               active
-                                ? "border border-accent/60 bg-accent/15"
-                                : "border border-transparent bg-white/[0.02] hover:bg-white/[0.06]"
+                                ? "border-accent/80 bg-accent/10"
+                                : "border-white/5 bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
                             }`}
                           >
-                            <div className="flex items-center justify-between">
-                              <span className={`font-mono text-xs font-bold ${active ? "text-accent" : "text-foreground"}`}>
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className={`font-mono text-[11px] font-bold ${active ? "text-accent" : "text-foreground"}`}>
                                 {s.code}
                               </span>
-                              <span
-                                className={`text-[9px] font-mono px-1 rounded ${
-                                  s.priority === "CRITICAL"
-                                    ? "bg-destructive/20 text-destructive font-bold"
-                                    : "text-muted-foreground"
-                                }`}
+                              <span className="text-[11px] text-muted-foreground truncate">
+                                {s.title}
+                              </span>
+                            </div>
+
+                            {s.contentLink ? (
+                              <a
+                                href={s.contentLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                title={`Open ${s.linkText || "External Link"}`}
+                                className="flex shrink-0 items-center gap-1 rounded border border-accent/40 bg-accent/15 px-2 py-1 font-mono text-[9px] font-bold text-accent transition-colors hover:bg-accent hover:text-black"
                               >
-                                {s.priority}
-                              </span>
-                            </div>
-
-                            <div className="mt-1 flex items-center justify-between gap-1 text-[11px] text-muted-foreground font-medium">
-                              <span className="truncate">{s.title}</span>
-                              {s.contentLink && (
-                                <a
-                                  href={s.contentLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  title={`Open ${s.linkText || "External Link"}`}
-                                  className="flex shrink-0 items-center gap-1 rounded bg-accent/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-accent hover:bg-accent hover:text-black transition-colors"
-                                >
-                                  <ExternalLink className="h-2.5 w-2.5" />
-                                  <span>LINK</span>
-                                </a>
-                              )}
-                            </div>
-
-                            <div className="mt-2 flex items-center gap-2">
-                              <span className="h-[3px] flex-1 overflow-hidden bg-muted rounded-full">
-                                <span
-                                  className="block h-full transition-all"
-                                  style={{
-                                    width: `${s.load}%`,
-                                    background:
-                                      s.alert || s.priority === "CRITICAL"
-                                        ? "var(--destructive)"
-                                        : active
-                                          ? "var(--accent)"
-                                          : "var(--foreground)",
-                                  }}
-                                />
-                              </span>
-                              <span className="font-mono text-[9px] text-muted-foreground">
-                                {s.load}%
-                              </span>
-                            </div>
-                          </button>
+                                <ExternalLink className="h-2.5 w-2.5" />
+                                <span>LINK</span>
+                              </a>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTerminal(s.id);
+                                }}
+                                className="flex shrink-0 items-center gap-1 rounded border border-white/10 bg-white/5 px-2 py-1 font-mono text-[9px] font-medium text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+                              >
+                                <span>VIEW</span>
+                              </button>
+                            )}
+                          </div>
                         );
                       })
                     )}
