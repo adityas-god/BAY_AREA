@@ -25,6 +25,9 @@ jobs:
           echo "Building frontend on host machine..."
           npm ci || npm install
           npm run build
+          # Remove any stale favicon.ico to eliminate old icons completely
+          rm -f .output/public/favicon.ico public/favicon.ico || true
+          cp -f public/favicon.svg .output/public/favicon.svg 2>/dev/null || true
           # Verify and ensure index.html exists in .output/public for Nginx SPA serving
           if [ ! -f .output/public/index.html ]; then
             echo "Searching for generated HTML files in build output..."
