@@ -631,131 +631,73 @@ function Index() {
           onSizeChange={setCanvasSize}
         />
 
-        {/* Top-Left Telemetry HUD — GreyOrange Mission Command Glass Panel */}
-        <div className="absolute left-4 top-4 z-20 flex flex-col gap-1.5 pointer-events-auto md:left-6 md:top-4 select-none">
+        {/* Telemetry Info Area — Clean Robotics Data Style with Collapse Toggle */}
+        <div className="absolute left-5 top-4 z-20 pointer-events-auto md:left-8 md:top-5 select-none">
           {hudCollapsed ? (
-            /* Collapsed Compact Capsule Pill */
+            /* Collapsed State: Minimal Tag */
             <button
               onClick={() => setHudCollapsed(false)}
-              title="Expand telemetry panel"
-              className="group flex items-center gap-2.5 rounded-lg border border-accent/40 bg-black/85 px-3 py-1.5 text-xs shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl transition-all hover:border-accent hover:bg-black/95 hover:shadow-[0_0_20px_rgba(255,140,0,0.25)]"
+              title="Expand District Telemetry"
+              className="group flex items-center gap-2 rounded border border-white/10 bg-black/60 px-2.5 py-1 backdrop-blur-md transition-all hover:border-accent hover:bg-black/80"
             >
-              <span className="font-mono text-[11px] font-bold tracking-wider text-accent">
-                {activeTeam.name.toUpperCase()}
-              </span>
-              <span className="font-mono text-[10px] text-muted-foreground/80">
-                · {teamSops.length} SOPS
-              </span>
-              {criticalCount > 0 && (
-                <span className="rounded bg-destructive/20 border border-destructive/40 px-1.5 py-0.5 font-mono text-[9px] font-bold text-destructive">
-                  {criticalCount} P1
-                </span>
-              )}
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-y-0.5 group-hover:text-accent" />
+              <span className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground">CAMPUS 0{activeTeamIndex + 1}</span>
+              <span className="font-display text-xs font-bold text-accent">{activeTeam.name.toUpperCase()}</span>
+              <span className="font-mono text-[10px] text-muted-foreground">· {teamSops.length} BLOCKS</span>
+              <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-y-0.5 group-hover:text-accent" />
             </button>
           ) : (
-            /* Expanded Full Telemetry Mission Control */
-            <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="relative flex items-center gap-3 rounded-lg border border-accent/35 bg-black/80 px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
-                {/* District Identifier Badge */}
-                <div className="flex items-center gap-2.5 border-r border-white/10 pr-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md border border-accent/40 bg-accent/15 text-accent shadow-[0_0_15px_rgba(255,140,0,0.25)]">
-                    <Radio className="h-4 w-4 text-accent" />
-                  </div>
-                  <div>
-                    <div className="font-mono text-[9px] font-semibold tracking-[0.2em] text-muted-foreground">
-                      CAMPUS ZONE
-                    </div>
-                    <h1 className="font-display text-sm font-bold tracking-wider text-foreground">
-                      {activeTeam.name.toUpperCase()}
-                      <span className="ml-1.5 font-mono text-[11px] font-normal text-accent">[{activeTeam.code}]</span>
-                    </h1>
-                  </div>
+            /* Expanded State: Exact Clean Typography Data Style with Close/Collapse Icon */
+            <div className="relative flex items-start gap-6 md:gap-9 animate-in fade-in duration-150">
+              {/* Team / District */}
+              <div>
+                <div className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground font-medium">
+                  CAMPUS DISTRICT 0{activeTeamIndex + 1}
                 </div>
-
-                {/* SOP Inventory Metric */}
-                <div className="flex items-center gap-2 border-r border-white/10 px-3">
-                  <div className="flex h-7 w-7 items-center justify-center rounded bg-white/5 text-muted-foreground">
-                    <Layers className="h-3.5 w-3.5 text-accent" />
-                  </div>
-                  <div>
-                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">SOPS</div>
-                    <div className="font-display text-base font-bold leading-none text-foreground">
-                      {teamSops.length}
-                      <span className="ml-1 font-mono text-[9px] font-normal text-muted-foreground">BLOCKS</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Compliance & Health Metric */}
-                <div className="hidden sm:flex items-center gap-2 border-r border-white/10 px-3">
-                  <div className="flex h-7 w-7 items-center justify-center rounded bg-white/5 text-muted-foreground">
-                    <Activity className="h-3.5 w-3.5 text-emerald-400" />
-                  </div>
-                  <div>
-                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">COMPLIANCE</div>
-                    <div className={`font-display text-base font-bold leading-none ${avgCompliance >= 90 ? "text-emerald-400" : "text-amber-400"}`}>
-                      {avgCompliance}%
-                    </div>
-                  </div>
-                </div>
-
-                {/* Critical P1 Live Alert Indicator */}
-                <div className="flex items-center gap-2 border-r border-white/10 px-3">
-                  <div className={`flex h-7 w-7 items-center justify-center rounded ${criticalCount > 0 ? "bg-destructive/20 text-destructive" : "bg-white/5 text-muted-foreground"}`}>
-                    <ShieldAlert className="h-3.5 w-3.5" />
-                  </div>
-                  <div>
-                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">CRITICAL P1</div>
-                    <div className={`font-display text-base font-bold leading-none ${criticalCount > 0 ? "text-destructive font-black" : "text-foreground"}`}>
-                      {criticalCount}
-                      <span className="ml-1 font-mono text-[9px] font-normal text-muted-foreground">ACTIVE</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SLA Target */}
-                <div className="hidden lg:flex items-center gap-2 px-3">
-                  <div className="flex h-7 w-7 items-center justify-center rounded bg-white/5 text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5 text-accent" />
-                  </div>
-                  <div>
-                    <div className="font-mono text-[8px] tracking-wider text-muted-foreground font-semibold">SLA TARGET</div>
-                    <div className="font-display text-base font-bold leading-none text-accent">
-                      {activeTeam.slaMinutes || 15}
-                      <span className="ml-1 font-mono text-[9px] font-normal text-muted-foreground">MIN</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Collapse Control Toggle */}
-                <button
-                  onClick={() => setHudCollapsed(true)}
-                  title="Collapse telemetry panel"
-                  className="ml-1 flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-all hover:bg-white/10 hover:text-foreground"
-                >
-                  <ChevronUp className="h-3.5 w-3.5" />
-                </button>
+                <h1 className="mt-0.5 font-display text-lg font-bold leading-[1.15] tracking-wide text-accent md:text-xl">
+                  {activeTeam.name.toUpperCase()}
+                </h1>
               </div>
 
-              {/* Sub-Banner: Team Mandate & Monitored Fleets */}
-              <div className="hidden md:flex items-center justify-between rounded border border-white/10 bg-black/70 px-3 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur-md">
-                <div className="flex items-center gap-2 truncate max-w-[500px]">
-                  <span className="flex items-center gap-1 text-foreground/90 font-semibold">
-                    <Bot className="h-3 w-3 text-accent" />
-                    <span>FLEETS:</span>
-                  </span>
-                  <span className="truncate">
-                    {activeTeam.fleets && activeTeam.fleets.length > 0
-                      ? activeTeam.fleets.join(" · ")
-                      : "Butler M500 Fleet · PickPut Stations"}
-                  </span>
+              {/* District SOPs */}
+              <div>
+                <div className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground font-medium">
+                  DISTRICT SOPS
                 </div>
-                <div className="ml-3 shrink-0 text-accent/90">
-                  <span className="text-white/30 mr-1.5">|</span>
-                  LEAD: {activeTeam.lead || "Operations Specialist"}
+                <div className="mt-0.5 font-display text-2xl font-bold leading-none md:text-[28px] text-foreground">
+                  {teamSops.length}
+                  <span className="ml-1 font-mono text-[11px] font-medium text-muted-foreground">BLOCKS</span>
                 </div>
               </div>
+
+              {/* Compliance */}
+              <div className="hidden sm:block">
+                <div className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground font-medium">
+                  COMPLIANCE
+                </div>
+                <div className={`mt-0.5 font-display text-2xl font-bold leading-none md:text-[28px] ${avgCompliance >= 90 ? "text-accent" : "text-foreground"}`}>
+                  {avgCompliance}%
+                </div>
+              </div>
+
+              {/* Critical P1 */}
+              <div>
+                <div className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground font-medium">
+                  CRITICAL P1
+                </div>
+                <div className={`mt-0.5 font-display text-2xl font-bold leading-none md:text-[28px] ${criticalCount > 0 ? "text-accent" : "text-foreground"}`}>
+                  {criticalCount}
+                  <span className="ml-1 font-mono text-[11px] font-medium text-muted-foreground">ALERT</span>
+                </div>
+              </div>
+
+              {/* Collapse Button */}
+              <button
+                onClick={() => setHudCollapsed(true)}
+                title="Collapse Panel"
+                className="mt-1 flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-black/40 text-muted-foreground transition-all hover:border-accent hover:text-accent"
+              >
+                <ChevronUp className="h-3.5 w-3.5" />
+              </button>
             </div>
           )}
         </div>
