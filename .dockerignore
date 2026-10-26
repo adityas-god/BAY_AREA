@@ -1,4 +1,14 @@
-frontend/node_modules
 **/node_modules
+node_modules
+team-sop-hub-main
 .git
 .github
+.idea
+.vscode
+frontend/.vinxi
+frontend/.tanstack
+frontend/.nitro
+*.log
+.DS_Store
+.env
+.env.local

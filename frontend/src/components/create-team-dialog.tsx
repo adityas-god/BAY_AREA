@@ -53,91 +53,93 @@ export function CreateTeamDialog({ isOpen, onClose, onCreate }: CreateTeamDialog
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-xl border border-accent/40 bg-black/80 p-6 shadow-[0_0_50px_rgba(255,140,0,0.18)] backdrop-blur-2xl text-foreground">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/80 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg rounded-lg bg-[#141518] border border-zinc-800 p-6 shadow-2xl text-foreground font-sans">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/80 pb-4">
+        <div className="flex items-center justify-between pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/20 border border-accent/50 text-accent">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-[#D9531E] text-white">
               <Users className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-display text-lg font-bold">CONFIGURE NEW TEAM</h3>
-              <p className="font-mono text-xs text-muted-foreground">GREYORANGE OPERATIONS DOMAIN</p>
+              <h3 className="font-display text-xl font-bold tracking-wider text-white uppercase">
+                Configure New Team
+              </h3>
+              <p className="text-xs text-zinc-400 font-sans">Operational squad division</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-muted-foreground hover:bg-white/10 hover:text-foreground"
+            className="rounded p-1 text-zinc-400 hover:bg-white/10 hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4 font-mono text-xs">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs font-sans">
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
-              <label className="text-muted-foreground">TEAM CODE</label>
+              <label className="text-zinc-300 font-medium">Team Code</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. NOC"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-accent font-bold focus:border-accent focus:outline-none"
+                className="mt-1.5 w-full rounded bg-black/60 px-3 py-2 text-white font-bold focus:bg-black/80 focus:outline-none"
               />
             </div>
             <div className="col-span-2">
-              <label className="text-muted-foreground">TEAM NAME</label>
+              <label className="text-zinc-300 font-medium">Team Name</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. Network Operations"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
+                className="mt-1.5 w-full rounded bg-black/60 px-3 py-2 text-white focus:bg-black/80 focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-muted-foreground">TEAM LEAD / OWNER</label>
+            <label className="text-zinc-300 font-medium">Team Lead / Owner</label>
             <input
               type="text"
-              placeholder="e.g. Vikram Malhotra (Principal Lead)"
+              placeholder="e.g. Vikram Malhotra"
               value={lead}
               onChange={(e) => setLead(e.target.value)}
-              className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
+              className="mt-1.5 w-full rounded bg-black/60 px-3 py-2 text-white focus:bg-black/80 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="text-muted-foreground">MANDATE & SCOPE DESCRIPTION</label>
+            <label className="text-zinc-300 font-medium">Description</label>
             <textarea
               rows={3}
-              placeholder="Describe this team's operational scope, robotic systems managed, and triage responsibilities."
+              placeholder="Describe operational scope and robotic systems managed."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
+              className="mt-1.5 w-full rounded bg-black/60 px-3 py-2 text-white focus:bg-black/80 focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/60">
+          <div className="flex items-center justify-end gap-2 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded border border-white/10 px-4 py-2 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+              className="rounded bg-zinc-800 px-4 py-2 text-xs text-zinc-300 hover:bg-zinc-700 hover:text-white"
             >
-              CANCEL
+              Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 rounded bg-accent px-4 py-2 font-bold text-accent-foreground transition-all hover:bg-accent/90"
+              className="flex items-center gap-1.5 rounded bg-[#D9531E] px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-[#C84814]"
             >
               <Plus className="h-4 w-4" />
-              <span>DEPLOY TEAM</span>
+              <span>Create Team</span>
             </button>
           </div>
         </form>

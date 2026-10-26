@@ -1,5 +1,6 @@
 services:
   bay-area-frontend:
+    image: bay-area-frontend:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,13 +10,20 @@ services:
       - "${HOST_PORT:-8083}:80"
     environment:
       - NODE_ENV=production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     networks:
       - bay_area_net
 
 networks:
   bay_area_net:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.28.20.0/24

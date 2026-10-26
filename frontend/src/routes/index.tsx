@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Plus,
   Trash2,
-  Terminal,
   FolderPlus,
   Database,
   Layers,
@@ -38,26 +37,27 @@ import {
   getCategorySopCoords,
 } from "@/lib/teams-sops";
 import { SopDataService } from "@/lib/mongodb";
-import { ScifiTerminal } from "@/components/scifi-terminal";
 import { CreateTeamDialog } from "@/components/create-team-dialog";
 import { CreateSOPDialog } from "@/components/create-sop-dialog";
 import { CreateCategoryDialog } from "@/components/create-category-dialog";
 import { TeamHQDialog } from "@/components/team-hq-dialog";
+import { EditSopLinkDialog } from "@/components/edit-sop-link-dialog";
+import { TeamSopWebsite } from "@/components/team-sop-website";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GreyOrange — Operations & SOP Command" },
+      { title: "BAY AREA™ — SOP Hub for GreyOrange" },
       {
         name: "description",
         content:
-          "Mission-critical operations and Standard Operating Procedure (SOP) command canvas for GreyOrange robotics teams.",
+          "BAY AREA — SOP Hub for GreyOrange operations, teams, categories and standard operating procedures.",
       },
-      { property: "og:title", content: "GreyOrange — Operations & SOP Command" },
+      { property: "og:title", content: "BAY AREA™ — SOP Hub for GreyOrange" },
       {
         property: "og:description",
         content:
-          "Mission-critical operations and Standard Operating Procedure (SOP) command canvas for GreyOrange robotics teams.",
+          "BAY AREA — SOP Hub for GreyOrange operations, teams, categories and standard operating procedures.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -67,6 +67,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [viewMode, setViewMode] = useState<"website" | "village">("website");
   const [teams, setTeams] = useState<Team[]>(INITIAL_TEAMS);
   const [sops, setSops] = useState<SOP[]>(INITIAL_SOPS);
   const [activeTeamId, setActiveTeamId] = useState<string>("team-cac");
@@ -79,12 +80,14 @@ function Index() {
   });
   const [selectionCollapsed, setSelectionCollapsed] = useState(false);
   const [hudCollapsed, setHudCollapsed] = useState(true);
-  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const [isCreateSOPOpen, setIsCreateSOPOpen] = useState(false);
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [categoryDialogTeamId, setCategoryDialogTeamId] = useState<string | null>(null);
+  const [sopDialogTeamId, setSopDialogTeamId] = useState<string | null>(null);
   const [preselectedCategory, setPreselectedCategory] = useState<string | undefined>(undefined);
+  const [isEditLinkOpen, setIsEditLinkOpen] = useState(false);
+  const [editLinkSop, setEditLinkSop] = useState<SOP | null>(null);
 
   const animationRef = useRef<number | null>(null);
   const viewRef = useRef(view);
@@ -123,6 +126,33 @@ function Index() {
     }
     return counts;
   }, [activeTeamCategories, teamSops]);
+
+  // Target team for SOP creation dialog (ensures newly added SOPs map to the exact team & category)
+  const targetSopTeam = useMemo(
+    () => teams.find((t) => t.id === (sopDialogTeamId || activeTeamId)) || activeTeam,
+    [teams, sopDialogTeamId, activeTeamId, activeTeam],
+  );
+  const targetSopTeamIndex = Math.max(
+    0,
+    teams.findIndex((t) => t.id === targetSopTeam.id),
+  );
+  const targetSopTeamSops = useMemo(
+    () => sops.filter((s) => s.teamId === targetSopTeam.id),
+    [sops, targetSopTeam.id],
+  );
+  const targetSopCategoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const cats =
+      targetSopTeam.categories && targetSopTeam.categories.length > 0
+        ? targetSopTeam.categories
+        : ["General Protocols", "Alert & Incident SOPs"];
+    for (const c of cats) counts[c] = 0;
+    for (const s of targetSopTeamSops) {
+      const c = cats.includes(s.category) ? s.category : cats[0];
+      counts[c] = (counts[c] || 0) + 1;
+    }
+    return counts;
+  }, [targetSopTeam, targetSopTeamSops]);
 
   const selectedSop = useMemo(
     () => sops.find((s) => s.id === selectedId) || null,
@@ -427,9 +457,18 @@ function Index() {
 
   const criticalCount = teamSops.filter((s) => s.priority === "CRITICAL" || s.alert).length;
 
-  const handleOpenTerminal = (id?: string) => {
-    if (id) setSelectedId(id);
-    setIsTerminalOpen(true);
+  const handleOpenProcedure = (id?: string) => {
+    const targetId = id || selectedId;
+    if (!targetId) return;
+    const targetSop = sops.find((s) => s.id === targetId);
+    if (!targetSop) return;
+    setSelectedId(targetId);
+    if (targetSop.contentLink) {
+      window.open(targetSop.contentLink, "_blank", "noopener,noreferrer");
+    } else {
+      setEditLinkSop(targetSop);
+      setIsEditLinkOpen(true);
+    }
   };
 
   const handleSelectHall = (id: string | null) => {
@@ -526,95 +565,294 @@ function Index() {
     setIsCreateCategoryOpen(true);
   };
 
-  // Keyboard shortcut: Delete key removes selected SOP block
+  const handleSaveSopLink = async (sopId: string, contentLink: string, linkText: string) => {
+    const target = sops.find((s) => s.id === sopId);
+    if (!target) return;
+    const updatedSop: SOP = {
+      ...target,
+      contentLink: contentLink || undefined,
+      linkText: linkText || undefined,
+    };
+    const updatedList = await SopDataService.saveSOP(updatedSop);
+    setSops(updatedList);
+  };
+
+  // Handlers for the Team SOP Hub website
+  const handleWebsiteCreateTeam = async (data: { name: string; description: string | null }) => {
+    const rawCode = data.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, "TM") || "TM";
+    const uniqueCode = teams.some((t) => t.code === rawCode) ? `${rawCode}${teams.length + 1}` : rawCode;
+    const newTeam: Team = {
+      id: `team-${Date.now()}`,
+      code: uniqueCode,
+      name: data.name,
+      description: data.description || "",
+      lead: "Team Lead",
+      color: "#D9531E",
+      categories: ["General Operations", "Troubleshooting", "Checklists"],
+    };
+    const updated = await SopDataService.saveTeam(newTeam);
+    setTeams(updated);
+  };
+
+  const handleWebsiteUpdateTeam = async (data: { id: string; name: string; description: string | null }) => {
+    const target = teams.find((t) => t.id === data.id);
+    if (!target) return;
+    const updatedTeam: Team = {
+      ...target,
+      name: data.name,
+      description: data.description || "",
+    };
+    const updated = await SopDataService.saveTeam(updatedTeam);
+    setTeams(updated);
+  };
+
+  const handleWebsiteDeleteTeam = async (teamId: string) => {
+    const updatedTeams = await SopDataService.deleteTeam(teamId);
+    setTeams(updatedTeams);
+    const updatedSops = await SopDataService.getAllSOPs();
+    setSops(updatedSops);
+    if (activeTeamId === teamId && updatedTeams.length > 0) {
+      setActiveTeamId(updatedTeams[0].id);
+    }
+  };
+
+  const handleWebsiteCreateCategory = async (teamId: string, name: string) => {
+    const updatedTeams = await SopDataService.addCategory(teamId, name);
+    setTeams(updatedTeams);
+  };
+
+  const handleWebsiteUpdateCategory = async (teamId: string, oldName: string, newName: string) => {
+    const updatedTeams = await SopDataService.updateCategory(teamId, oldName, newName);
+    setTeams(updatedTeams);
+    const updatedSops = await SopDataService.getAllSOPs();
+    setSops(updatedSops);
+  };
+
+  const handleWebsiteDeleteCategory = async (teamId: string, name: string) => {
+    const updatedTeams = await SopDataService.deleteCategory(teamId, name);
+    setTeams(updatedTeams);
+    const updatedSops = await SopDataService.getAllSOPs();
+    setSops(updatedSops);
+  };
+
+  const handleWebsiteCreateSOP = async (data: {
+    teamId: string;
+    categoryId: string | null;
+    title: string;
+    kind: "link" | "note";
+    url: string | null;
+    content: string | null;
+  }) => {
+    const targetTeam = teams.find((t) => t.id === data.teamId) || activeTeam;
+    const teamIndex = Math.max(0, teams.findIndex((t) => t.id === targetTeam.id));
+    const teamSopsList = sops.filter((s) => s.teamId === targetTeam.id);
+    const category = data.categoryId || targetTeam.categories?.[0] || "General Operations";
+    const sopsInCat = teamSopsList.filter((s) => s.category === category);
+    const code = `${targetTeam.code}-SOP-${String(teamSopsList.length + 1).padStart(2, "0")}`;
+
+    const catIndex = Math.max(0, (targetTeam.categories || []).findIndex((c) => c === category));
+    const catCounts = (targetTeam.categories || []).map(
+      (c) => teamSopsList.filter((s) => s.category === c).length,
+    );
+
+    const coords = getCategorySopCoords(
+      teamIndex,
+      catIndex,
+      sopsInCat.length,
+      catCounts,
+    );
+
+    const newSop: SOP = {
+      id: `sop-${Date.now()}`,
+      teamId: data.teamId,
+      code,
+      title: data.title,
+      category,
+      priority: "MEDIUM",
+      status: "ACTIVE",
+      version: "v1.0",
+      author: "Operations Lead",
+      updatedAt: new Date().toISOString().slice(0, 10),
+      summary: data.content || (data.url ? `Standard operating link: ${data.url}` : "Standard Procedure"),
+      triggerCondition: "Operational procedure standard",
+      steps: data.content
+        ? [{ id: "step-1", order: 1, title: data.title, description: data.content }]
+        : [{ id: "step-1", order: 1, title: "Review Procedure Link", description: `Access external documentation at ${data.url}` }],
+      contentLink: data.url || undefined,
+      linkText: data.url ? "Open SOP Document" : undefined,
+      gx: coords.gx,
+      gy: coords.gy,
+      row: 0,
+      load: 100,
+      alert: false,
+    };
+
+    const updated = await SopDataService.saveSOP(newSop);
+    setSops(updated);
+  };
+
+  const handleWebsiteUpdateSOP = async (data: {
+    id: string;
+    teamId: string;
+    categoryId: string | null;
+    title: string;
+    kind: "link" | "note";
+    url: string | null;
+    content: string | null;
+  }) => {
+    const target = sops.find((s) => s.id === data.id);
+    if (!target) return;
+    const updatedSop: SOP = {
+      ...target,
+      title: data.title,
+      category: data.categoryId || target.category,
+      contentLink: data.url || undefined,
+      linkText: data.url ? "Open SOP Document" : undefined,
+      summary: data.content || target.summary,
+    };
+    const updated = await SopDataService.saveSOP(updatedSop);
+    setSops(updated);
+  };
+
+  const handleWebsiteDeleteSOP = async (sopId: string) => {
+    const updated = await SopDataService.deleteSOP(sopId);
+    setSops(updated);
+  };
+
+  // Keyboard shortcut: Delete key removes selected SOP block, 'F' flips view
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedId && !isTerminalOpen) {
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        setViewMode((m) => (m === "website" ? "village" : "website"));
+        return;
+      }
+      if (
+        isCreateTeamOpen ||
+        isCreateSOPOpen ||
+        isCreateCategoryOpen ||
+        isEditLinkOpen ||
+        selectedTeamHQId
+      ) {
+        return;
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
         e.preventDefault();
         handleDeleteSOP();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedId, isTerminalOpen]);
+  }, [
+    selectedId,
+    isCreateTeamOpen,
+    isCreateSOPOpen,
+    isCreateCategoryOpen,
+    isEditLinkOpen,
+    selectedTeamHQId,
+  ]);
+
+  if (viewMode === "website") {
+    return (
+      <TeamSopWebsite
+        teams={teams}
+        sops={sops}
+        onFlipToVillage={() => setViewMode("village")}
+        onFlyToTeamInVillage={(teamId) => {
+          navigateToTeam(teamId);
+          setViewMode("village");
+        }}
+        onCreateTeam={handleWebsiteCreateTeam}
+        onUpdateTeam={handleWebsiteUpdateTeam}
+        onDeleteTeam={handleWebsiteDeleteTeam}
+        onCreateCategory={handleWebsiteCreateCategory}
+        onUpdateCategory={handleWebsiteUpdateCategory}
+        onDeleteCategory={handleWebsiteDeleteCategory}
+        onCreateSOP={handleWebsiteCreateSOP}
+        onUpdateSOP={handleWebsiteUpdateSOP}
+        onDeleteSOP={handleWebsiteDeleteSOP}
+      />
+    );
+  }
 
   const activeTeamIndex = Math.max(0, teams.findIndex((t) => t.id === activeTeam.id));
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
-      {/* Top Cybernetic Nav Header */}
-      <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-black/60 px-5 backdrop-blur-xl md:px-8">
+      {/* Dark Deco Nav Header */}
+      <header className="flex h-14 shrink-0 items-center justify-between gap-4 bg-[#101114] border-b border-zinc-800/80 px-5 md:px-8 shadow-md">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent font-display text-[16px] font-black leading-none text-black shadow-[0_0_15px_rgba(255,140,0,0.35)]">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-[#D9531E] font-display text-lg font-bold leading-none text-white">
             G
           </div>
           <div className="flex flex-col">
-            <span className="font-display text-sm font-bold tracking-[0.22em] text-foreground">
-              GREY<span className="text-accent">ORANGE</span>
-            </span>
-            <span className="font-mono text-[9px] tracking-wider text-muted-foreground/80">
-              ROBOTICS OPERATIONS COMMAND · BAY AREA
+            <div className="flex items-center gap-1.5">
+              <span className="font-display text-base font-bold tracking-wider text-white uppercase">
+                BAY <span className="text-orange-400">AREA</span>
+              </span>
+              <span className="text-[9px] font-sans font-bold text-orange-400">™</span>
+            </div>
+            <span className="text-[10px] text-zinc-400 font-mono -mt-0.5 tracking-wider uppercase">
+              SOP HUB FOR GREYORANGE
             </span>
           </div>
         </div>
 
-        <nav className="hidden items-center gap-5 text-xs font-mono text-muted-foreground lg:flex">
-          <span className="flex items-center gap-1.5 text-foreground font-semibold">
-            <Compass className="h-3.5 w-3.5 text-accent animate-spin-slow" />
-            <span>DISTRICT: <span className="text-accent">{activeTeam.name.toUpperCase()}</span> (0{activeTeamIndex + 1})</span>
+        <nav className="hidden items-center gap-4 text-xs font-sans text-zinc-400 md:flex">
+          <span className="flex items-center gap-1.5 text-white font-medium">
+            <Compass className="h-3.5 w-3.5 text-orange-400" />
+            <span>Campus District: <strong className="text-white">{activeTeam.name}</strong></span>
           </span>
-          <span className="text-white/10">|</span>
-          <button
-            onClick={navigateToAllBays}
-            className="flex items-center gap-1.5 rounded border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-mono font-bold text-muted-foreground transition-all hover:border-accent hover:text-accent hover:bg-accent/10"
-            title="Overview / Zoom out to frame all bay areas across campus"
-          >
-            <Maximize className="h-3.5 w-3.5 text-accent" />
-            <span>ALL BAY AREAS</span>
-          </button>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 font-sans">
+          <button
+            onClick={() => setViewMode("website")}
+            className="flex items-center gap-1.5 rounded-lg bg-[#D9531E] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#C84814] cursor-pointer shadow-sm"
+            title="Switch to SOP Hub Website [F]"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            <span>SOP Hub</span>
+            <kbd className="hidden sm:inline font-mono text-[9px] opacity-75 ml-0.5">[F]</kbd>
+          </button>
+
           <button
             onClick={navigateToAllBays}
-            className="flex items-center gap-1.5 rounded border border-border px-2.5 py-1.5 font-mono text-xs font-bold text-muted-foreground transition-colors hover:border-accent hover:text-accent lg:hidden"
-            title="Overview / Zoom out to frame all bay areas across campus"
+            className="hidden lg:flex items-center gap-1.5 rounded bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+            title="Overview / Zoom out to frame all bay areas"
           >
-            <Maximize className="h-3.5 w-3.5 text-accent" />
-            <span>ALL BAYS</span>
+            <Maximize className="h-3.5 w-3.5" />
+            <span>All Bays</span>
           </button>
-          <button
-            onClick={() => handleOpenAddCategoryZone(activeTeam.id)}
-            className="hidden sm:flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 font-mono text-xs font-bold text-accent transition-all hover:bg-accent/25 hover:border-accent shadow-[0_0_12px_rgba(255,140,0,0.1)]"
-          >
-            <Layers className="h-3.5 w-3.5" />
-            <span>+ CATEGORY BAY</span>
-          </button>
+
           <button
             onClick={() => setIsCreateTeamOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-3 py-1.5 font-mono text-xs font-bold text-foreground/90 transition-all hover:border-accent hover:text-accent hover:bg-white/10"
+            className="hidden sm:flex items-center gap-1.5 rounded bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
           >
             <FolderPlus className="h-3.5 w-3.5" />
-            <span>+ NEW TEAM</span>
+            <span>+ Team</span>
           </button>
           <button
             onClick={() => {
               setPreselectedCategory(undefined);
+              setSopDialogTeamId(activeTeam.id);
               setIsCreateSOPOpen(true);
             }}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-1.5 font-mono text-xs font-bold text-black transition-all hover:bg-accent/90 shadow-[0_0_18px_rgba(255,140,0,0.35)]"
+            className="flex items-center gap-1.5 rounded bg-[#D9531E] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#C84814]"
           >
-            <Plus className="h-3.5 w-3.5 stroke-[3]" />
-            <span>+ CONFIGURE SOP</span>
+            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+            <span>+ SOP</span>
           </button>
         </div>
       </header>
 
       {/* Main 2.5D Isometric Canvas */}
       <main className="relative min-h-0 flex-1 bg-[var(--ground)] overflow-hidden">
-        <IsoScene
+        {/* Background Clash of Clans 2.5D Village Canvas */}
+        <div className="relative h-full w-full">
+          <IsoScene
           halls={halls}
           districts={districtsData}
           categoryPartitions={categoryPartitionsData}
@@ -622,7 +860,7 @@ function Index() {
           onSelectHall={handleSelectHall}
           onSelectDistrict={navigateToTeam}
           onSelectTeamHQ={handleSelectTeamHQ}
-          onOpenTerminal={handleOpenTerminal}
+          onOpenProcedure={handleOpenProcedure}
           onAddSopToCategory={handleOpenAddSopToCategory}
           onAddCategoryZone={handleOpenAddCategoryZone}
           onDeleteCategory={handleDeleteCategory}
@@ -630,6 +868,7 @@ function Index() {
           onViewChange={setView}
           onSizeChange={setCanvasSize}
         />
+        </div>
 
         {/* Telemetry Info Area — Clean Robotics Data Style with Collapse Toggle */}
         <div className="absolute left-5 top-4 z-20 pointer-events-auto md:left-8 md:top-5 select-none">
@@ -694,7 +933,7 @@ function Index() {
               <button
                 onClick={() => setHudCollapsed(true)}
                 title="Collapse Panel"
-                className="mt-1 flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-black/40 text-muted-foreground transition-all hover:border-accent hover:text-accent"
+                className="mt-1 flex h-6 w-6 items-center justify-center rounded-lg bg-black/50 text-zinc-400 transition-all hover:text-white"
               >
                 <ChevronUp className="h-3.5 w-3.5" />
               </button>
@@ -708,26 +947,26 @@ function Index() {
             onClick={() => setSelectionCollapsed(false)}
             aria-label="Expand SOP repository"
             title="Expand SOP repository"
-            className="group absolute right-4 top-4 z-20 flex items-center gap-2 rounded border border-white/10 bg-black/80 px-3 py-1.5 backdrop-blur-md transition-all hover:border-accent hover:bg-black/95 md:right-6 md:top-4"
+            className="group absolute right-4 top-4 z-20 flex items-center gap-2 rounded-lg bg-black/80 px-3.5 py-2 backdrop-blur-md transition-all hover:bg-black/95 md:right-6 md:top-4 shadow-xl"
           >
-            <ChevronLeft className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:-translate-x-0.5 group-hover:text-accent" />
-            <span className="font-mono text-[10px] tracking-wider text-muted-foreground">SOPS</span>
-            <span className="font-display text-xs font-bold text-foreground">
+            <ChevronLeft className="h-3.5 w-3.5 text-zinc-400 transition-transform group-hover:-translate-x-0.5 group-hover:text-orange-400" />
+            <span className="font-display text-xs tracking-wider text-zinc-400">SOPS</span>
+            <span className="font-display text-sm tracking-wide text-white">
               {teamSops.length} · {activeTeam.code}
             </span>
             {selectedSop && (
-              <span className="rounded bg-accent/15 px-1.5 py-0.2 font-mono text-[9px] font-bold text-accent">
+              <span className="rounded bg-[#24130A] border border-orange-500/30 px-2 py-0.5 font-display text-xs text-orange-300">
                 {selectedSop.code}
               </span>
             )}
           </button>
         ) : (
-          <aside className="absolute right-4 top-4 z-20 w-64 border border-white/10 bg-black/85 p-3.5 backdrop-blur-xl transition-all md:right-6 md:top-4 md:w-72 shadow-xl">
+          <aside className="absolute right-4 top-4 z-20 w-64 rounded-xl bg-black/90 p-4 backdrop-blur-xl transition-all md:right-6 md:top-4 md:w-72 shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <div className="flex items-center justify-between pb-2">
               <div>
-                <div className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground">SOP REPOSITORY</div>
-                <div className="font-display text-sm font-bold text-foreground">
+                <div className="font-display text-xs tracking-wider text-zinc-400">SOP REPOSITORY</div>
+                <div className="font-display text-base tracking-wide text-white">
                   {teamSops.length} SOPs · {activeTeam.code}
                 </div>
               </div>
@@ -735,7 +974,7 @@ function Index() {
                 onClick={() => setSelectionCollapsed(true)}
                 title="Collapse panel"
                 aria-label="Collapse panel"
-                className="rounded p-1 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -798,18 +1037,18 @@ function Index() {
                           <div
                             key={s.id}
                             onClick={() => setSelectedId(active ? null : s.id)}
-                            onDoubleClick={() => handleOpenTerminal(s.id)}
-                            className={`group flex items-center justify-between gap-2 rounded border px-2.5 py-1.5 cursor-pointer transition-colors ${
+                            onDoubleClick={() => handleOpenProcedure(s.id)}
+                            className={`group flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 cursor-pointer transition-colors ${
                               active
-                                ? "border-accent/80 bg-accent/10"
-                                : "border-white/5 bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
+                                ? "bg-[#28150C] border border-orange-500/30"
+                                : "bg-zinc-900/60 hover:bg-zinc-900"
                             }`}
                           >
                             <div className="flex flex-col min-w-0 flex-1">
-                              <span className={`font-mono text-[11px] font-bold ${active ? "text-accent" : "text-foreground"}`}>
+                              <span className={`font-display text-xs tracking-wider ${active ? "text-orange-300" : "text-white"}`}>
                                 {s.code}
                               </span>
-                              <span className="text-[11px] text-muted-foreground truncate">
+                              <span className="text-xs text-zinc-400 truncate font-sans">
                                 {s.title}
                               </span>
                             </div>
@@ -821,20 +1060,23 @@ function Index() {
                                 rel="noopener noreferrer"
                                 onClick={(e) => e.stopPropagation()}
                                 title={`Open ${s.linkText || "External Link"}`}
-                                className="flex shrink-0 items-center gap-1 rounded border border-accent/40 bg-accent/15 px-2 py-1 font-mono text-[9px] font-bold text-accent transition-colors hover:bg-accent hover:text-black"
+                                className="flex shrink-0 items-center gap-1 rounded bg-[#D9531E] px-2.5 py-1 font-sans text-xs font-semibold text-white transition-colors hover:bg-[#C84814]"
                               >
-                                <ExternalLink className="h-2.5 w-2.5" />
+                                <ExternalLink className="h-3 w-3" />
                                 <span>LINK</span>
                               </a>
                             ) : (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleOpenTerminal(s.id);
+                                  setEditLinkSop(s);
+                                  setIsEditLinkOpen(true);
                                 }}
-                                className="flex shrink-0 items-center gap-1 rounded border border-white/10 bg-white/5 px-2 py-1 font-mono text-[9px] font-medium text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+                                title="Attach procedure link"
+                                className="flex shrink-0 items-center gap-1 rounded bg-zinc-800 px-2 py-1 font-sans text-xs text-orange-400 transition-colors hover:bg-zinc-700 hover:text-orange-300"
                               >
-                                <span>VIEW</span>
+                                <Link2 className="h-3 w-3" />
+                                <span>+ LINK</span>
                               </button>
                             )}
                           </div>
@@ -848,7 +1090,7 @@ function Index() {
               {/* Add New Category Zone in Sidebar */}
               <button
                 onClick={() => handleOpenAddCategoryZone(activeTeam.id)}
-                className="flex w-full items-center justify-center gap-1.5 rounded border border-dashed border-accent/40 bg-accent/5 p-2.5 font-mono text-[10px] font-bold text-accent transition-colors hover:bg-accent/15"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 font-display text-xs tracking-wider text-orange-400 transition-colors hover:bg-zinc-800 hover:text-orange-300"
               >
                 <Plus className="h-3 w-3" />
                 <span>+ ADD CATEGORY ZONE</span>
@@ -857,39 +1099,55 @@ function Index() {
 
             {/* Selected SOP Action Card */}
             {selectedSop && (
-              <div className="mt-3 space-y-2 border-t border-border/60 pt-3">
-                {selectedSop.contentLink && (
-                  <a
-                    href={selectedSop.contentLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded border border-accent/60 bg-accent/20 px-3 py-2 font-mono text-xs font-bold text-accent shadow-md transition-all hover:bg-accent hover:text-black"
+              <div className="mt-3 space-y-2 pt-3">
+                {selectedSop.contentLink ? (
+                  <div className="space-y-1.5">
+                    <a
+                      href={selectedSop.contentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#D9531E] px-3.5 py-2 font-display text-xs tracking-wider text-white shadow-md transition-all hover:bg-[#C84814]"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span className="truncate">
+                        OPEN {selectedSop.linkText || "PROCEDURE LINK"}
+                      </span>
+                    </a>
+                    <button
+                      onClick={() => {
+                        setEditLinkSop(selectedSop);
+                        setIsEditLinkOpen(true);
+                      }}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-3 py-1.5 font-display text-xs tracking-wider text-zinc-300 transition-all hover:bg-zinc-800 hover:text-white"
+                    >
+                      <Link2 className="h-3.5 w-3.5 text-orange-400" />
+                      <span>EDIT PROCEDURE LINK</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setEditLinkSop(selectedSop);
+                      setIsEditLinkOpen(true);
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#D9531E] px-3.5 py-2 font-display text-xs tracking-wider text-white shadow-md transition-all hover:bg-[#C84814]"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span className="truncate">
-                      OPEN {selectedSop.linkText || "DOCUMENTATION / ROSTER"}
-                    </span>
-                  </a>
+                    <Link2 className="h-3.5 w-3.5" />
+                    <span>ATTACH PROCEDURE LINK</span>
+                  </button>
                 )}
-                <button
-                  onClick={() => handleOpenTerminal(selectedSop.id)}
-                  className="flex w-full items-center justify-center gap-2 rounded bg-accent px-3 py-2 font-mono text-xs font-bold text-accent-foreground shadow-md transition-all hover:bg-accent/90"
-                >
-                  <Terminal className="h-3.5 w-3.5" />
-                  <span>OPEN SCI-FI TERMINAL</span>
-                </button>
               </div>
             )}
           </aside>
         )}
 
         {/* Campus Town Radar Minimap */}
-        <div className="absolute bottom-4 left-5 border border-border/70 bg-panel/95 p-2.5 backdrop-blur-md md:left-8 rounded shadow-lg">
-          <div className="flex items-center justify-between pb-1.5 font-mono text-[9px] text-muted-foreground tracking-wider border-b border-border/50">
-            <span className="flex items-center gap-1 text-accent font-bold">
-              <Compass className="h-3 w-3" /> CAMPUS RADAR
+        <div className="absolute bottom-4 left-5 bg-black/85 p-3 backdrop-blur-md md:left-8 rounded-xl shadow-2xl">
+          <div className="flex items-center justify-between pb-1.5 font-display text-xs text-zinc-400 tracking-wider">
+            <span className="flex items-center gap-1 text-orange-400 font-bold">
+              <Compass className="h-3.5 w-3.5" /> CAMPUS RADAR
             </span>
-            <span>{teams.length} DISTRICTS</span>
+            <span className="font-sans text-[11px]">{teams.length} DISTRICTS</span>
           </div>
 
           <svg viewBox="0 0 200 160" className="mt-1.5 block h-[96px] w-[140px] md:h-[120px] md:w-[180px]">
@@ -1021,74 +1279,82 @@ function Index() {
         </div>
       </main>
 
-      {/* Bottom Footer: Dynamic GreyOrange Team Tabs + Action Buttons */}
-      <footer className="flex h-12 shrink-0 items-center justify-between border-t border-border/60 bg-black/40 px-5 backdrop-blur-md md:px-8">
-        <div className="flex items-center gap-4 overflow-x-auto font-mono text-[11px] tracking-wide md:gap-6 custom-scrollbar py-1">
+      {/* Bottom Footer */}
+      <footer className="flex h-14 shrink-0 items-center justify-between bg-black/85 px-5 backdrop-blur-md md:px-8 shadow-inner">
+        <div className="flex items-center gap-4 overflow-x-auto font-sans text-xs tracking-wide md:gap-6 custom-scrollbar py-1">
           {teams.map((t, idx) => (
             <button
               key={t.id}
               onClick={() => navigateToTeam(t.id)}
-              className={`relative pb-0.5 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTeamId === t.id ? "text-accent font-bold" : "text-muted-foreground hover:text-foreground"
+              className={`relative pb-1 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                activeTeamId === t.id ? "text-orange-400 font-bold" : "text-zinc-400 hover:text-white"
               }`}
             >
               <span>0{idx + 1} {t.code}</span>
               {activeTeamId === t.id && (
-                <span className="absolute -bottom-[7px] left-0 right-0 h-[2px] bg-accent" />
+                <span className="absolute -bottom-[2px] left-0 right-0 h-[2px] bg-[#D9531E] rounded-full" />
               )}
             </button>
           ))}
           <button
             onClick={() => setIsCreateTeamOpen(true)}
-            className="flex items-center gap-1 rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-muted-foreground hover:border-accent hover:text-accent"
+            className="flex items-center gap-1 rounded-lg bg-zinc-900 px-2.5 py-1 text-xs font-sans text-zinc-300 hover:bg-zinc-800 hover:text-white"
           >
-            <Plus className="h-3 w-3" />
-            <span>NEW TEAM</span>
+            <Plus className="h-3.5 w-3.5" />
+            <span>New Team</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 font-display">
           {selectedSop && (
-            <button
-              onClick={() => handleOpenTerminal(selectedSop.id)}
-              className="hidden sm:flex items-center gap-1.5 rounded-[4px] border border-accent/50 bg-accent/10 px-3 py-1.5 text-xs font-bold text-accent transition-colors hover:bg-accent/20"
-            >
-              <Terminal className="h-3.5 w-3.5" /> Terminal
-            </button>
+            selectedSop.contentLink ? (
+              <a
+                href={selectedSop.contentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-1.5 rounded-lg bg-[#D9531E] px-3.5 py-2 text-xs tracking-wider text-white transition-colors hover:bg-[#C84814]"
+              >
+                <ExternalLink className="h-3.5 w-3.5" /> Open Link
+              </a>
+            ) : (
+              <button
+                onClick={() => {
+                  setEditLinkSop(selectedSop);
+                  setIsEditLinkOpen(true);
+                }}
+                className="hidden sm:flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-xs tracking-wider text-orange-400 transition-colors hover:bg-zinc-800 hover:text-orange-300"
+              >
+                <Link2 className="h-3.5 w-3.5" /> + Link
+              </button>
+            )
           )}
           <button
             onClick={() => handleOpenAddCategoryZone(activeTeam.id)}
-            className="hidden md:flex items-center gap-1.5 rounded-[4px] border border-border px-2.5 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+            className="hidden md:flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-xs tracking-wider text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
           >
-            <Layers className="h-3.5 w-3.5 text-accent" /> + Category Bay
+            <Layers className="h-3.5 w-3.5 text-orange-400" /> + Category Bay
           </button>
           <button
             onClick={handleDeleteSOP}
             disabled={!selectedId}
-            className="flex items-center gap-1.5 rounded-[4px] border border-border px-3 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:pointer-events-none disabled:opacity-40"
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-xs tracking-wider text-zinc-400 transition-colors hover:bg-orange-950/40 hover:text-orange-300 disabled:pointer-events-none disabled:opacity-40"
           >
-            <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} /> Delete SOP
+            <Trash2 className="h-3.5 w-3.5" /> Delete SOP
           </button>
           <button
             onClick={() => {
               setPreselectedCategory(undefined);
+              setSopDialogTeamId(activeTeam.id);
               setIsCreateSOPOpen(true);
             }}
-            className="flex items-center gap-1.5 rounded-[4px] bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground transition-colors hover:bg-accent/90"
+            className="flex items-center gap-1.5 rounded-lg bg-[#D9531E] px-4 py-2 text-xs tracking-wider text-white transition-colors hover:bg-[#C84814]"
           >
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} /> Add SOP Block
+            <Plus className="h-3.5 w-3.5" /> Add SOP Block
           </button>
         </div>
       </footer>
 
       {/* Modals */}
-      <ScifiTerminal
-        sop={selectedSop}
-        isOpen={isTerminalOpen}
-        onClose={() => setIsTerminalOpen(false)}
-        onSave={handleSaveSOP}
-      />
-
       <CreateTeamDialog
         isOpen={isCreateTeamOpen}
         onClose={() => setIsCreateTeamOpen(false)}
@@ -1107,12 +1373,15 @@ function Index() {
 
       <CreateSOPDialog
         isOpen={isCreateSOPOpen}
-        onClose={() => setIsCreateSOPOpen(false)}
-        team={activeTeam}
-        teamIndex={activeTeamIndex}
-        existingSopsCount={teamSops.length}
+        onClose={() => {
+          setIsCreateSOPOpen(false);
+          setSopDialogTeamId(null);
+        }}
+        team={targetSopTeam}
+        teamIndex={targetSopTeamIndex}
+        existingSopsCount={targetSopTeamSops.length}
         defaultCategory={preselectedCategory}
-        categorySopCounts={categorySopCounts}
+        categorySopCounts={targetSopCategoryCounts}
         onCreate={handleCreateSOP}
         onAddNewCategory={handleOpenAddCategoryZone}
       />
@@ -1124,11 +1393,27 @@ function Index() {
         isOpen={selectedTeamHQId !== null}
         onClose={() => setSelectedTeamHQId(null)}
         onUpdateTeam={handleUpdateTeam}
-        onOpenSopTerminal={handleOpenTerminal}
+        onManageSopLink={(sopId) => {
+          const target = sops.find((s) => s.id === sopId);
+          if (target) {
+            setEditLinkSop(target);
+            setIsEditLinkOpen(true);
+          }
+        }}
         onFlyToDistrict={(teamId) => {
           setSelectedTeamHQId(null);
           navigateToTeam(teamId);
         }}
+      />
+
+      <EditSopLinkDialog
+        sop={editLinkSop}
+        isOpen={isEditLinkOpen}
+        onClose={() => {
+          setIsEditLinkOpen(false);
+          setEditLinkSop(null);
+        }}
+        onSaveLink={handleSaveSopLink}
       />
     </div>
   );

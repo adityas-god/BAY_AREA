@@ -63,12 +63,12 @@ function HallBox({
   hall,
   selected,
   onHallClick,
-  onOpenTerminal,
+  onOpenProcedure,
 }: {
   hall: Hall;
   selected: boolean;
   onHallClick: (id: string) => void;
-  onOpenTerminal?: (id: string) => void;
+  onOpenProcedure?: (id: string) => void;
 }) {
   const { gx, gy, load, alert, id } = hall;
   const fw = HALL_FW;
@@ -80,7 +80,7 @@ function HallBox({
   const barH = 0.14;
   const fillX = barX + (barW * load) / 100;
 
-  const statusColor = alert ? "#EF4444" : load >= 85 ? "#10B981" : "#F59E0B";
+  const statusColor = alert ? "#EA580C" : load >= 85 ? "#10B981" : "#F59E0B";
 
   return (
     <g
@@ -91,7 +91,7 @@ function HallBox({
       }}
       onDoubleClick={(e) => {
         e.stopPropagation();
-        onOpenTerminal?.(id);
+        onOpenProcedure?.(id);
       }}
     >
       {/* 1. Clash of Clans Realistic Directional Cast Ground Shadow */}
@@ -327,7 +327,7 @@ function HallBox({
             <g pointerEvents="none">
               <line x1={baseP.px} y1={baseP.py} x2={topP.px} y2={topP.py} stroke="#94A3B8" strokeWidth="1.4" />
               <line x1={topP.px - 3} y1={topP.py + 4} x2={topP.px + 3} y2={topP.py + 4} stroke="#94A3B8" strokeWidth="1" />
-              <circle cx={topP.px} cy={topP.py} r={2} fill={alert ? "#EF4444" : "var(--accent)"} />
+              <circle cx={topP.px} cy={topP.py} r={2} fill={alert ? "#EA580C" : "var(--accent)"} />
             </g>
           );
         })()}
@@ -370,7 +370,7 @@ function HallBox({
             className="cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              onOpenTerminal?.(id);
+              onOpenProcedure?.(id);
             }}
           >
             <rect
@@ -648,7 +648,7 @@ function TeamHQBuilding({
           <g pointerEvents="none">
             <line x1={mBase.px} y1={mBase.py} x2={mTop.px} y2={mTop.py} stroke="#94A3B8" strokeWidth="1.8" />
             <line x1={mTop.px - 4} y1={mTop.py + 6} x2={mTop.px + 4} y2={mTop.py + 6} stroke="#94A3B8" strokeWidth="1.2" />
-            <circle cx={mTop.px} cy={mTop.py} r={2.5} fill={alertCount > 0 ? "#EF4444" : "var(--accent)"} />
+            <circle cx={mTop.px} cy={mTop.py} r={2.5} fill={alertCount > 0 ? "#EA580C" : "var(--accent)"} />
           </g>
         );
       })()}
@@ -1178,7 +1178,7 @@ export function IsoScene({
   onSelectHall,
   onSelectDistrict,
   onSelectTeamHQ,
-  onOpenTerminal,
+  onOpenProcedure,
   onAddSopToCategory,
   onAddCategoryZone,
   onDeleteCategory,
@@ -1193,7 +1193,7 @@ export function IsoScene({
   onSelectHall: (id: string | null) => void;
   onSelectDistrict?: (id: string) => void;
   onSelectTeamHQ?: (teamId: string) => void;
-  onOpenTerminal?: (id: string) => void;
+  onOpenProcedure?: (id: string) => void;
   onAddSopToCategory?: (teamId: string, categoryName: string) => void;
   onAddCategoryZone?: (teamId: string) => void;
   onDeleteCategory?: (teamId: string, categoryName: string) => void;
@@ -1369,7 +1369,7 @@ export function IsoScene({
           hall={hall}
           selected={hall.id === selectedId}
           onHallClick={handleHallClick}
-          onOpenTerminal={onOpenTerminal}
+          onOpenProcedure={onOpenProcedure}
         />
       ),
     });
@@ -1654,28 +1654,28 @@ export function IsoScene({
 
       {/* zoom controls */}
       <div className="absolute bottom-4 right-4 flex flex-col items-end gap-2 select-none z-20">
-        <div className="flex flex-col rounded border border-border/80 bg-panel/90 shadow-2xl backdrop-blur-md overflow-hidden">
+        <div className="flex flex-col rounded-lg bg-black/85 shadow-2xl backdrop-blur-md overflow-hidden">
           <button
             aria-label="Zoom in"
             title="Zoom in"
             onClick={() => zoomBy(1.3)}
-            className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-accent/20 hover:text-accent"
+            className="flex h-8 w-8 items-center justify-center text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
           >
             <Plus className="h-4 w-4" />
           </button>
-          <div className="h-px bg-border/60" />
+          <div className="h-px bg-white/5" />
           <div
-            className="px-1 py-1 text-center font-mono text-[9px] font-bold text-muted-foreground tracking-tighter"
+            className="px-1 py-1 text-center font-sans text-[10px] font-medium text-zinc-400 tracking-tighter"
             title={`Current zoom scale: ${(view.k * 100).toFixed(1)}%`}
           >
             {view.k < 0.1 ? `${(view.k * 100).toFixed(1)}%` : `${Math.round(view.k * 100)}%`}
           </div>
-          <div className="h-px bg-border/60" />
+          <div className="h-px bg-white/5" />
           <button
             aria-label="Zoom out"
             title="Zoom out (infinite)"
             onClick={() => zoomBy(1 / 1.3)}
-            className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-accent/20 hover:text-accent"
+            className="flex h-8 w-8 items-center justify-center text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
           >
             <Minus className="h-4 w-4" />
           </button>
@@ -1685,9 +1685,9 @@ export function IsoScene({
           aria-label="Fit all bay areas"
           title="Fit all bay areas and districts in view"
           onClick={fitAll}
-          className="flex h-8 items-center gap-1.5 rounded border border-border/80 bg-panel/90 px-2.5 text-xs font-mono font-bold text-muted-foreground shadow-2xl backdrop-blur-md transition-colors hover:border-accent hover:text-accent hover:bg-accent/10"
+          className="flex h-8 items-center gap-1.5 rounded-lg bg-black/85 px-3 text-xs font-display tracking-wider text-zinc-300 shadow-2xl backdrop-blur-md transition-colors hover:bg-zinc-900 hover:text-white"
         >
-          <Maximize className="h-3.5 w-3.5 text-accent" />
+          <Maximize className="h-3.5 w-3.5 text-orange-400" />
           <span>ALL BAYS</span>
         </button>
 
@@ -1695,7 +1695,7 @@ export function IsoScene({
           aria-label="Reset view"
           title="Reset to default district view"
           onClick={() => animateTo(INITIAL_VIEW)}
-          className="flex h-8 w-8 items-center justify-center rounded border border-border/80 bg-panel/90 text-muted-foreground shadow-2xl backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/85 text-zinc-400 shadow-2xl backdrop-blur-md transition-colors hover:bg-zinc-900 hover:text-white"
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </button>

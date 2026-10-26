@@ -43,6 +43,85 @@ export class SopDataService {
   }
 
   /**
+   * Deletes a team and all its SOPs
+   */
+  static async deleteTeam(teamId: string): Promise<Team[]> {
+    const teams = loadStoredTeams();
+    const updatedTeams = teams.filter((t) => t.id !== teamId);
+    saveStoredTeams(updatedTeams);
+
+    // Also remove any SOPs belonging to this team
+    const sops = loadStoredSOPs();
+    const updatedSops = sops.filter((s) => s.teamId !== teamId);
+    saveStoredSOPs(updatedSops);
+
+    return updatedTeams;
+  }
+
+  /**
+   * Adds a category to a team
+   */
+  static async addCategory(teamId: string, categoryName: string): Promise<Team[]> {
+    const teams = loadStoredTeams();
+    const index = teams.findIndex((t) => t.id === teamId);
+    if (index >= 0) {
+      const team = teams[index];
+      const categories = team.categories ? [...team.categories] : [];
+      if (!categories.includes(categoryName)) {
+        categories.push(categoryName);
+        teams[index] = { ...team, categories };
+        saveStoredTeams(teams);
+      }
+    }
+    return teams;
+  }
+
+  /**
+   * Renames a category in a team and updates its SOPs
+   */
+  static async updateCategory(teamId: string, oldName: string, newName: string): Promise<Team[]> {
+    const teams = loadStoredTeams();
+    const index = teams.findIndex((t) => t.id === teamId);
+    if (index >= 0) {
+      const team = teams[index];
+      const categories = (team.categories || []).map((c) => (c === oldName ? newName : c));
+      teams[index] = { ...team, categories };
+      saveStoredTeams(teams);
+
+      // Update SOP categories
+      const sops = loadStoredSOPs();
+      const updatedSops = sops.map((s) => {
+        if (s.teamId === teamId && s.category === oldName) {
+          return { ...s, category: newName };
+        }
+        return s;
+      });
+      saveStoredSOPs(updatedSops);
+    }
+    return teams;
+  }
+
+  /**
+   * Deletes a category from a team and removes or updates its SOPs
+   */
+  static async deleteCategory(teamId: string, categoryName: string): Promise<Team[]> {
+    const teams = loadStoredTeams();
+    const index = teams.findIndex((t) => t.id === teamId);
+    if (index >= 0) {
+      const team = teams[index];
+      const categories = (team.categories || []).filter((c) => c !== categoryName);
+      teams[index] = { ...team, categories };
+      saveStoredTeams(teams);
+
+      // Delete SOPs belonging to this category
+      const sops = loadStoredSOPs();
+      const updatedSops = sops.filter((s) => !(s.teamId === teamId && s.category === categoryName));
+      saveStoredSOPs(updatedSops);
+    }
+    return teams;
+  }
+
+  /**
    * Fetches SOPs filtered by team
    */
   static async getSOPsByTeam(teamId: string): Promise<SOP[]> {

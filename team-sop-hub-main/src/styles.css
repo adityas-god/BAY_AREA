@@ -1,0 +1,128 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system — "retro minimal" (cream / maroon / orange, bold serif display).
+ * The @theme inline block maps CSS custom properties to Tailwind utilities.
+ */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ink: var(--ink);
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --shadow-panel: 0 24px 48px -24px oklch(0.3 0.09 28 / 0.35);
+  --shadow-lift: 0 12px 24px -14px oklch(0.3 0.09 28 / 0.45);
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0.933 0.022 75);
+  --foreground: oklch(0.3 0.085 28);
+  --card: oklch(0.958 0.016 80);
+  --card-foreground: oklch(0.3 0.085 28);
+  --popover: oklch(0.958 0.016 80);
+  --popover-foreground: oklch(0.3 0.085 28);
+  --primary: oklch(0.3 0.085 28);
+  --primary-foreground: oklch(0.95 0.02 75);
+  --secondary: oklch(0.26 0.09 25);
+  --secondary-foreground: oklch(0.95 0.02 75);
+  --muted: oklch(0.9 0.028 75);
+  --muted-foreground: oklch(0.47 0.05 40);
+  --accent: oklch(0.66 0.21 42);
+  --accent-foreground: oklch(0.98 0.01 80);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0.01 80);
+  --border: oklch(0.3 0.085 28 / 18%);
+  --input: oklch(0.3 0.085 28 / 18%);
+  --ink: oklch(0.18 0.012 60);
+}
+
+.dark {
+  --background: #0d0e11;
+  --foreground: #f4f4f6;
+  --card: #15161a;
+  --card-foreground: #f4f4f6;
+  --popover: #15161a;
+  --popover-foreground: #f4f4f6;
+  --primary: #D9531E;
+  --primary-foreground: #ffffff;
+  --secondary: #1e1f24;
+  --secondary-foreground: #f4f4f6;
+  --muted: #1a1b20;
+  --muted-foreground: #9ca3af;
+  --accent: #D9531E;
+  --accent-foreground: #ffffff;
+  --destructive: #EA580C;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #D9531E;
+  --ink: rgba(255, 255, 255, 0.2);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@utility pill {
+  @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-all duration-200;
+}
+
+@utility striped {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-ink) 0 2px,
+    transparent 2px 7px
+  );
+}
+
+/* Hide scrollbars globally across all browsers while preserving smooth scrolling */
+html,
+body,
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

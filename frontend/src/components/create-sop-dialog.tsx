@@ -143,29 +143,29 @@ export function CreateSOPDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/75 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-xl rounded-xl border border-accent/40 bg-black/90 p-6 shadow-[0_0_50px_rgba(255,140,0,0.18)] backdrop-blur-2xl text-foreground"
+        className="relative w-full max-w-xl rounded-xl dark-deco-card p-6 shadow-2xl backdrop-blur-2xl text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/80 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-accent/20 border border-accent/50 text-accent">
-              <FileText className="h-4 w-4" />
+        <div className="flex items-center justify-between pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#D9531E]/20 text-orange-400">
+              <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-display text-lg font-bold">CONFIGURE SOP BLOCK</h3>
-              <p className="font-mono text-xs text-muted-foreground">
-                ASSIGN TO <span className="text-accent font-bold">{team.name}</span>
+              <h3 className="font-display text-xl tracking-wider text-white">CONFIGURE SOP BLOCK</h3>
+              <p className="font-sans text-xs text-zinc-400">
+                Assign to <span className="text-orange-400 font-semibold">{team.name}</span>
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+            className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
             aria-label="Close dialog"
           >
             <X className="h-4 w-4" />
@@ -173,21 +173,21 @@ export function CreateSOPDialog({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4 font-mono text-xs">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4 font-sans text-xs">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="text-muted-foreground">SOP CODE</label>
+              <label className="text-zinc-400 font-medium">SOP CODE</label>
               <input
                 type="text"
                 required
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-accent font-bold focus:border-accent focus:outline-none"
+                className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3 py-2 text-orange-400 font-semibold focus:outline-none focus:ring-1 focus:ring-orange-500/40"
               />
             </div>
             <div>
               <div className="flex items-center justify-between">
-                <label className="text-muted-foreground">CATEGORY BAY</label>
+                <label className="text-zinc-400 font-medium">CATEGORY BAY</label>
                 {onAddNewCategory && (
                   <button
                     type="button"
@@ -195,117 +195,117 @@ export function CreateSOPDialog({
                       onClose();
                       onAddNewCategory(team.id);
                     }}
-                    className="text-[10px] text-accent hover:underline"
+                    className="text-[11px] text-orange-400 hover:text-orange-300 hover:underline"
                   >
-                    + NEW BAY
+                    + New Bay
                   </button>
                 )}
               </div>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
+                className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3 py-2 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
               >
                 {teamCategories.map((c) => (
-                  <option key={c} value={c} className="bg-zinc-900 text-foreground">
+                  <option key={c} value={c} className="bg-zinc-900 text-zinc-100">
                     {c}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-muted-foreground">PRIORITY</label>
+              <label className="text-zinc-400 font-medium">PRIORITY</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as SOPPriority)}
-                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
+                className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3 py-2 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
               >
-                <option value="CRITICAL" className="bg-zinc-900 text-destructive font-bold">CRITICAL</option>
-                <option value="HIGH" className="bg-zinc-900 text-accent font-bold">HIGH</option>
-                <option value="MEDIUM" className="bg-zinc-900 text-foreground">MEDIUM</option>
-                <option value="LOW" className="bg-zinc-900 text-muted-foreground">LOW</option>
+                <option value="CRITICAL" className="bg-zinc-900 text-orange-400 font-semibold">CRITICAL</option>
+                <option value="HIGH" className="bg-zinc-900 text-orange-300 font-semibold">HIGH</option>
+                <option value="MEDIUM" className="bg-zinc-900 text-zinc-300">MEDIUM</option>
+                <option value="LOW" className="bg-zinc-900 text-zinc-500">LOW</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="text-muted-foreground">SOP TITLE / PROCEDURE NAME</label>
+            <label className="text-zinc-400 font-medium">SOP TITLE / PROCEDURE NAME</label>
             <input
               type="text"
               required
               placeholder="e.g. Sorter Diverter Sensor Failure"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground font-display text-sm focus:border-accent focus:outline-none"
+              className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3.5 py-2.5 text-zinc-100 font-sans text-sm focus:outline-none focus:ring-1 focus:ring-orange-500/40"
             />
           </div>
 
           <div>
-            <label className="text-muted-foreground">SUMMARY & OBJECTIVE</label>
+            <label className="text-zinc-400 font-medium">SUMMARY & OBJECTIVE</label>
             <textarea
               rows={2}
               placeholder="Brief operational objective and expected resolution outcome."
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
+              className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3.5 py-2 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
             />
           </div>
 
           <div>
-            <label className="text-muted-foreground">TRIGGER CONDITION (WHEN TO EXECUTE)</label>
+            <label className="text-zinc-400 font-medium">TRIGGER CONDITION (WHEN TO EXECUTE)</label>
             <input
               type="text"
               placeholder="e.g. Optical sensor beam break timeout > 3000ms"
               value={triggerCondition}
               onChange={(e) => setTriggerCondition(e.target.value)}
-              className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
+              className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3.5 py-2 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
             />
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-muted-foreground">CONTENT / REDIRECT LINK (URL)</label>
+              <label className="text-zinc-400 font-medium">DOCUMENT / SOP LINK (URL)</label>
               <input
                 type="text"
                 placeholder="https://docs.google.com/... or https://atlassian.net/..."
                 value={contentLink}
                 onChange={(e) => setContentLink(e.target.value)}
-                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-accent font-mono text-[11px] focus:border-accent focus:outline-none"
+                className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3 py-2 text-orange-300 font-sans text-xs focus:outline-none focus:ring-1 focus:ring-orange-500/40"
               />
             </div>
             <div>
-              <label className="text-muted-foreground">LINK DISPLAY TEXT</label>
+              <label className="text-zinc-400 font-medium">LINK DISPLAY TEXT</label>
               <input
                 type="text"
                 placeholder="e.g. Master Template of DIR .docx"
                 value={linkText}
                 onChange={(e) => setLinkText(e.target.value)}
-                className="mt-1 w-full rounded border border-border/80 bg-black/60 px-3 py-2 text-foreground text-xs focus:border-accent focus:outline-none"
+                className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500/40"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-muted-foreground">STEP 1 CLI COMMAND (OPTIONAL)</label>
+            <label className="text-zinc-400 font-medium">STEP 1 CLI COMMAND (OPTIONAL)</label>
             <input
               type="text"
               value={initialStepCmd}
               onChange={(e) => setInitialStepCmd(e.target.value)}
-              className="mt-1 w-full rounded border border-border/80 bg-black/70 px-3 py-2 text-accent font-mono text-[11px] focus:border-accent focus:outline-none"
+              className="mt-1 w-full rounded-lg bg-zinc-950/80 px-3 py-2 text-orange-300 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-orange-500/40"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/60">
+          <div className="flex items-center justify-end gap-2.5 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="rounded border border-white/10 px-4 py-2 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+              className="rounded-lg bg-zinc-900 px-4 py-2 font-sans text-xs text-zinc-300 transition-colors hover:bg-zinc-800"
             >
-              CANCEL
+              Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 rounded bg-accent px-4 py-2 font-bold text-accent-foreground transition-all hover:bg-accent/90"
+              className="flex items-center gap-1.5 rounded-lg bg-[#D9531E] px-5 py-2 font-display text-sm tracking-wider text-white transition-all hover:bg-[#C84814] shadow-md"
             >
               <Plus className="h-4 w-4" />
               <span>SPAWN SOP BLOCK</span>

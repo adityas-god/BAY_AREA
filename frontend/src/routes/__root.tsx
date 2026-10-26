@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { Toaster } from "sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -78,11 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GreyOrange — Operations & SOP Command" },
-      { name: "description", content: "Robotics Operations and SOP command canvas for GreyOrange." },
+      { title: "BAY AREA™ — SOP Hub for GreyOrange" },
+      { name: "description", content: "BAY AREA — SOP Hub for GreyOrange operations, teams, categories and standard operating procedures." },
       { name: "author", content: "GreyOrange" },
-      { property: "og:title", content: "GreyOrange — Operations & SOP Command" },
-      { property: "og:description", content: "Robotics Operations and SOP command canvas for GreyOrange." },
+      { property: "og:title", content: "BAY AREA™ — SOP Hub for GreyOrange" },
+      { property: "og:description", content: "BAY AREA — SOP Hub for GreyOrange operations, teams, categories and standard operating procedures." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -97,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Fraunces:opsz,wght@9..144,400..800&family=Oswald:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap",
       },
     ],
   }),
@@ -128,6 +129,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
 }
