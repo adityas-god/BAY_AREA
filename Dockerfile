@@ -15,11 +15,11 @@ RUN if [ ! -f /usr/share/nginx/html/index.html ] && [ -f /usr/share/nginx/html/_
       cp /usr/share/nginx/html/_shell.html /usr/share/nginx/html/index.html; \
     fi
 
-# Expose standard HTTP port
-EXPOSE 80
+# Expose port 8083
+EXPOSE 8083
 
 # Health check endpoint verification
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://127.0.0.1:8083/health || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

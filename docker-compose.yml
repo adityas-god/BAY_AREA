@@ -6,8 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: bay-area-frontend
     restart: unless-stopped
-    ports:
-      - "${HOST_PORT:-8083}:80"
+    network_mode: host
     environment:
       - NODE_ENV=production
     logging:
@@ -16,14 +15,8 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8083/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 5s
-    networks:
-      - bay_area_net
-
-networks:
-  bay_area_net:
-    driver: bridge
