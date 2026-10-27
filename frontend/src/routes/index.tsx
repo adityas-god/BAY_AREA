@@ -75,8 +75,8 @@ function Index() {
   const [selectedTeamHQId, setSelectedTeamHQId] = useState<string | null>(null);
   const [view, setView] = useState<View>(INITIAL_VIEW);
   const [canvasSize, setCanvasSize] = useState({
-    width: typeof window !== "undefined" ? window.innerWidth : 1920,
-    height: typeof window !== "undefined" ? window.innerHeight : 1080,
+    width: 1920,
+    height: 1080,
   });
   const [selectionCollapsed, setSelectionCollapsed] = useState(false);
   const [hudCollapsed, setHudCollapsed] = useState(true);
@@ -95,6 +95,7 @@ function Index() {
 
   // Load teams and SOPs on mount
   useEffect(() => {
+    setCanvasSize({ width: window.innerWidth, height: window.innerHeight });
     SopDataService.getTeams().then(setTeams);
     SopDataService.getAllSOPs().then(setSops);
   }, []);

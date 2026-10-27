@@ -128,19 +128,26 @@ export function TeamSopWebsite({
     return teamSops.filter((s) => !s.category || !teamCats.includes(s.category));
   }, [activeTeam, teamSops]);
 
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
+  const [isDark, setIsDark] = useState<boolean>(true);
+
+  useEffect(() => {
+    try {
       const stored = localStorage.getItem("bay_area_theme");
-      if (stored) return stored === "dark";
+      if (stored) {
+        setIsDark(stored === "dark");
+      }
+    } catch {
+      // ignore
     }
-    return true; // Default to Dark Mode!
-  });
+  }, []);
 
   const handleToggleDarkMode = () => {
     setIsDark((prev) => {
       const next = !prev;
-      if (typeof window !== "undefined") {
+      try {
         localStorage.setItem("bay_area_theme", next ? "dark" : "light");
+      } catch {
+        // ignore
       }
       return next;
     });
