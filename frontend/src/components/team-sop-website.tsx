@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ArrowLeft, ArrowUpRight, Plus, Compass, Layers, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Team, SOP } from "@/lib/teams-sops";
